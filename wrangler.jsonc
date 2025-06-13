@@ -18,7 +18,8 @@
                 {
                         "binding": "DB",
                         "database_name": "agh-dns-records",
-                        "database_id": "d7dcfbe5-522b-4bf8-80e2-a45546184c95"
+                        "database_id": "d7dcfbe5-522b-4bf8-80e2-a45546184c95",
+						"migrations_dir": "drizzle/migrations"
                 }
         ],
         "r2_buckets": [
