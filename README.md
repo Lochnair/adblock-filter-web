@@ -2,6 +2,25 @@
 
 Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
+## DNS record tool
+
+This app stores DNS records in a Cloudflare D1 database and exposes them as
+AdGuard filter rules. Generated rules are written to an R2 bucket. The following
+record types are supported:
+
+* `A`, `AAAA`, `CNAME`, `HTTPS`, `MX`, `PTR`, `SRV`, and `TXT`.
+
+Rules are emitted in the form `hostname$dnsrewrite=NOERROR;TYPE;VALUE`. For
+`HTTPS` records you may supply additional parameters such as `alpn`, `port` and
+`ipv4hint` as supported by AdGuard.
+
+Example rules:
+
+```
+ha.oandc.fun$dnsrewrite=NOERROR;A;172.20.20.2
+ha.oandc.fun$dnsrewrite=NOERROR;HTTPS;32 . alpn=h3 ipv4hint=172.20.20.2
+```
+
 ## Creating a project
 
 If you're seeing this, you've probably already done this step. Congrats!
