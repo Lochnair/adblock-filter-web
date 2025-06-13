@@ -3,8 +3,10 @@
 // Runtime types generated with workerd@1.20250604.0 2025-06-13 
 declare namespace Cloudflare {
 	interface Env {
-		ASSETS: Fetcher;
-	}
+               ASSETS: Fetcher;
+               DB: D1Database;
+               BUCKET: R2Bucket;
+       }
 }
 interface Env extends Cloudflare.Env {}
 
@@ -5151,6 +5153,9 @@ declare namespace Rpc {
 }
 declare namespace Cloudflare {
     interface Env {
+        ASSETS: Fetcher;
+        DB: D1Database;
+        BUCKET: R2Bucket;
     }
 }
 declare module 'cloudflare:workers' {
