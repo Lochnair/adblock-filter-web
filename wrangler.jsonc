@@ -17,12 +17,12 @@
         "d1_databases": [
                 {
                         "binding": "DB",
-                        "database_name": "dns",
-                        "database_id": "00000000-0000-0000-0000-000000000000"
+                        "database_name": "agh-dns-records",
+                        "database_id": "d7dcfbe5-522b-4bf8-80e2-a45546184c95"
                 }
         ],
         "r2_buckets": [
-                { "binding": "BUCKET", "bucket_name": "adblock-output" }
+                { "binding": "BUCKET", "bucket_name": "agh-rules" }
         ]
         /**
 	 * Smart Placement
