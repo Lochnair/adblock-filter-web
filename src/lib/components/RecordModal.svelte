@@ -17,8 +17,19 @@
 
 	async function recordSubmit(event: SubmitEvent) {
 		event.preventDefault();
-		const form = new FormData(event.target as HTMLFormElement);
-		const res = await fetch('?/saveRecord', { method: 'POST', body: form });
+		const payload = {
+			id: record?.id,
+			name,
+			type,
+			value,
+			list
+		};
+		const method = record ? 'PUT' : 'POST';
+		const res = await fetch('/api/records', {
+			method,
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(payload)
+		});
 		if (!res.ok) {
 			error = await res.text();
 			return;
