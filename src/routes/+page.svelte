@@ -15,7 +15,6 @@
 		TableHeadCell
 	} from 'flowbite-svelte';
 	import { EditOutline, TrashBinOutline } from 'flowbite-svelte-icons';
-	import NavBar from '$lib/components/NavBar.svelte';
 	import RecordModal from '$lib/components/RecordModal.svelte';
 	import type { DNSRecord } from '$lib/server/adblock';
 	import type { InferSelectModel } from 'drizzle-orm';
@@ -27,9 +26,9 @@
 			selectedList: string;
 		};
 	}>();
-	let lists = $state(data.lists);
-	let records = $state(data.records);
-	let selectedList = $state(data.selectedList);
+	let lists = $derived(data.lists);
+	let records = $derived(data.records);
+	let selectedList = $derived(data.selectedList);
 	let newList = $state('');
 	let modalOpen = $state(false);
 	let editing: DNSRecord | null = $state(null);
@@ -71,9 +70,6 @@
 	}
 </script>
 
-<NavBar />
-
-<h1 class="mb-4 text-2xl font-bold">DNS Records</h1>
 <Card class="mx-auto mb-6 max-w-xl">
 	<form class="space-y-4" onsubmit={createListSubmit}>
 		<div>
