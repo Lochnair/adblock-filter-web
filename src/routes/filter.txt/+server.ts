@@ -7,7 +7,7 @@ export const GET: RequestHandler = async ({ platform }) => {
         const db = getDB(platform);
         const records = await db.select().from(dnsRecords).all();
         const content = records.map(toFilter).join('\n');
-        await platform.env.BUCKET.put('filter.txt', content);
+        await platform?.env?.BUCKET.put('filter.txt', content);
         return new Response(content, {
                 headers: { 'content-type': 'text/plain' }
         });
