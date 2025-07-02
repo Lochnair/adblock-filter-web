@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Modal, Button, Label, Input, Select } from 'flowbite-svelte';
-	import { enhance } from '$app/forms';
 	import type { DNSRecord } from '$lib/server/adblock';
 	import { RECORD_TYPES } from '$lib/record-types';
 
@@ -19,19 +18,21 @@
 		type = record.type;
 		value = record.value;
 	}
+	async function recordSubmit(event: SubmitEvent) {
+		event.preventDefault();
+		const form = new FormData(event.target as HTMLFormElement);
+		const res = await fetch('?/saveRecord', { method: 'POST', body: form });
+		if (!res.ok) {
+			error = await res.text();
+			return;
+		}
+		await afterSubmit();
+		open = false;
+	}
 </script>
 
 <Modal bind:open onclose={() => (error = '')}>
-	<form
-		method="POST"
-		action="?/saveRecord"
-		use:enhance={() => {
-			afterSubmit().then(() => {
-				open = false;
-			});
-		}}
-		class="space-y-4"
-	>
+	<form method="dialog" on:submit={recordSubmit} class="space-y-4">
 		{#if record}
 			<input type="hidden" name="id" value={record.id} />
 		{/if}
