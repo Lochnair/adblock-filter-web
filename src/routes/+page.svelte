@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { $effect, $state } from 'svelte';
 	import ip_pkg from 'ipaddr.js';
 	const { IPv4, IPv6 } = ip_pkg;
 	import domain_pkg from 'is-valid-domain';
