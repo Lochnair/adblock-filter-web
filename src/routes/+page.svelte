@@ -45,6 +45,17 @@
 	let formValue = $state('');
 	let error = $state('');
 
+	let rr_type = [
+		{ name: 'A', value: 'A' },
+		{ name: 'AAAA', value: 'AAAA' },
+		{ name: 'CNAME', value: 'CNAME' },
+		{ name: 'HTTPS', value: 'HTTPS' },
+		{ name: 'MX', value: 'MX' },
+		{ name: 'PTR', value: 'PTR' },
+		{ name: 'SRV', value: 'SRV' },
+		{ name: 'TXT', value: 'TXT' }
+	];
+
 	async function loadLists() {
 		const res = await fetch('/api/lists');
 		lists = await res.json();
@@ -173,16 +184,7 @@
 <Modal bind:open={modalOpen} onclose={() => (error = '')}>
 	<form method="dialog" on:submit|preventDefault={save}>
 		<Input bind:value={formName} placeholder="hostname" />
-		<Select bind:value={formType}>
-			<option>A</option>
-			<option>AAAA</option>
-			<option>CNAME</option>
-			<option>HTTPS</option>
-			<option>MX</option>
-			<option>PTR</option>
-			<option>SRV</option>
-			<option>TXT</option>
-		</Select>
+		<Select bind:value={formType} items={rr_type} />
 		<Input bind:value={formValue} placeholder="value" />
 		{#if error}
 			<p class="text-red-600">{error}</p>
