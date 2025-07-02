@@ -18,11 +18,11 @@
 	import NavBar from '$lib/components/NavBar.svelte';
 	import RecordModal from '$lib/components/RecordModal.svelte';
 	import type { DNSRecord } from '$lib/server/adblock';
-	import type { InferModel } from 'drizzle-orm';
+	import type { InferSelectModel } from 'drizzle-orm';
 	import type { filterLists } from '$lib/server/db/schema';
 	let { data } = $props<{
 		data: {
-			lists: InferModel<typeof filterLists>[];
+			lists: InferSelectModel<typeof filterLists>[];
 			records: DNSRecord[];
 			selectedList: string;
 		};
@@ -57,7 +57,7 @@
 	async function refresh() {
 		const res = await fetch(`?list=${selectedList}`);
 		const json: Record<string, unknown> = await res.json();
-		const data = json as { lists: InferModel<typeof filterLists>[]; records: DNSRecord[] };
+		const data = json as { lists: InferSelectModel<typeof filterLists>[]; records: DNSRecord[] };
 		lists = data.lists;
 		records = data.records;
 	}

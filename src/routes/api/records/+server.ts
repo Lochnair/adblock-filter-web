@@ -1,10 +1,10 @@
 import { json } from '@sveltejs/kit';
 import { getDB } from '$lib/server/db';
 import { dnsRecords, filterLists } from '$lib/server/db/schema';
-import type { InferModel } from 'drizzle-orm';
+import type { InferSelectModel } from 'drizzle-orm';
 import { eq } from 'drizzle-orm';
 
-type RecordRow = InferModel<typeof dnsRecords>;
+type RecordRow = InferSelectModel<typeof dnsRecords>;
 
 async function getListId(db: ReturnType<typeof getDB>, slug: string) {
 	const [list] = await db.select().from(filterLists).where(eq(filterLists.slug, slug)).all();
