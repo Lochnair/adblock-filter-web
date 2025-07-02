@@ -3,21 +3,18 @@
 	import type { DNSRecord } from '$lib/server/adblock';
 	import { RECORD_TYPES } from '$lib/record-types';
 
-	export let open = false;
-	export let record: DNSRecord | null = null;
-	export let error = '';
-	export let list = 'default';
-	export let afterSubmit: () => Promise<void> = async () => {};
+	let {
+		open = $bindable(false),
+		record = $bindable<DNSRecord | null>(null),
+		error = $bindable(''),
+		list = $bindable('default'),
+		afterSubmit = $bindable(async () => {})
+	} = $props();
 
-	let name = '';
-	let type: DNSRecord['type'] = 'A';
-	let value = '';
+	let name = $derived(record?.name);
+	let type: DNSRecord['type'] = $derived(record?.type || 'A');
+	let value = $derived(record?.value);
 
-	$: if (record) {
-		name = record.name;
-		type = record.type;
-		value = record.value;
-	}
 	async function recordSubmit(event: SubmitEvent) {
 		event.preventDefault();
 		const form = new FormData(event.target as HTMLFormElement);
@@ -32,7 +29,7 @@
 </script>
 
 <Modal bind:open onclose={() => (error = '')}>
-	<form method="dialog" on:submit={recordSubmit} class="space-y-4">
+	<form method="dialog" onsubmit={recordSubmit} class="space-y-4">
 		{#if record}
 			<input type="hidden" name="id" value={record.id} />
 		{/if}
