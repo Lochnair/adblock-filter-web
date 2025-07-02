@@ -1,21 +1,32 @@
 import { json } from '@sveltejs/kit';
 import { getDB } from '$lib/server/db';
-import { dnsRecords } from '$lib/server/db/schema';
+import { dnsRecords, filterLists } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 
-export async function GET({ platform }) {
+async function getListId(db: ReturnType<typeof getDB>, slug: string) {
+	const [list] = await db.select().from(filterLists).where(eq(filterLists.slug, slug)).all();
+	if (!list) throw new Error('list not found');
+	return list.id as number;
+}
+
+export async function GET({ platform, url }) {
 	const db = getDB(platform);
-	const records = await db.select().from(dnsRecords).all();
+	const slug = url.searchParams.get('list') ?? 'default';
+	const listId = await getListId(db, slug);
+	const records = await db.select().from(dnsRecords).where(eq(dnsRecords.listId, listId)).all();
 	return json(records);
 }
 
 export async function POST({ request, platform }) {
 	const data = await request.json();
 	const db = getDB(platform);
+	const slug = data.list ?? 'default';
+	const listId = await getListId(db, slug);
 	await db.insert(dnsRecords).values({
 		name: data.name,
 		type: data.type,
-		value: data.value
+		value: data.value,
+		listId
 	});
 	return new Response(null, { status: 201 });
 }
