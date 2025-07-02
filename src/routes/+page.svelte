@@ -12,9 +12,11 @@
 		TableBodyCell,
 		TableBodyRow,
 		TableHead,
-		TableHeadCell
+		TableHeadCell,
+		Tabs,
+		TabItem
 	} from 'flowbite-svelte';
-	import { EditOutline, TrashBinOutline } from 'flowbite-svelte-icons';
+	import { EditOutline, TrashBinOutline, CloseOutline, PlusOutline } from 'flowbite-svelte-icons';
 	import RecordModal from '$lib/components/RecordModal.svelte';
 	import type { DNSRecord } from '$lib/server/adblock';
 	import type { InferSelectModel } from 'drizzle-orm';
@@ -49,12 +51,12 @@
 		if (!confirm('Are you sure you want to delete this record?')) return;
 		const form = new FormData();
 		form.set('id', id.toString());
-		await fetch('?/deleteRecord', { method: 'POST', body: form });
+		await fetch('/api/records', { method: 'DELETE', body: form });
 		await refresh();
 	}
 
 	async function refresh() {
-		const res = await fetch(`?list=${selectedList}`);
+		const res = await fetch(`/api/records?list=${selectedList}`);
 		const json: Record<string, unknown> = await res.json();
 		const data = json as { lists: InferSelectModel<typeof filterLists>[]; records: DNSRecord[] };
 		lists = data.lists;
@@ -64,11 +66,39 @@
 	async function createListSubmit(event: SubmitEvent) {
 		event.preventDefault();
 		const form = new FormData(event.target as HTMLFormElement);
-		await fetch('?/createList', { method: 'POST', body: form });
+		await fetch('/api/lists', { method: 'POST', body: form });
 		newList = '';
 		await refresh();
 	}
+
+	let activeTab = $state(0); // index of the currently displayed list
 </script>
+
+<Tabs>
+	{#each lists as l (l.id)}
+		<TabItem open={l.id === activeTab}>
+			{#snippet titleSlot()}
+				<span class="flex items-center">
+					{l.slug}
+					<button class="ms-2 rounded p-0.5 hover:bg-red-100" aria-label="Delete list">
+						<CloseOutline class="h-4 w-4 text-red-600" />
+					</button>
+				</span>
+			{/snippet}
+			<div class="p-4">
+				<!-- … your list’s items … -->
+			</div>
+		</TabItem>
+	{/each}
+
+	<button
+		class="flex items-center gap-1 rounded px-2 py-1 hover:bg-gray-100"
+		aria-label="Create new list"
+	>
+		<PlusOutline class="h-5 w-5 text-green-600" />
+		<span class="text-sm">New</span>
+	</button>
+</Tabs>
 
 <Card class="mx-auto mb-6 max-w-xl">
 	<form class="space-y-4" onsubmit={createListSubmit}>
