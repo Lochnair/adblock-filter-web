@@ -150,11 +150,11 @@
 		</TabItem>
 	{/each}
 
-       <Button
-               class="flex items-center gap-1 rounded px-2 py-1 hover:bg-gray-100"
-               aria-label="Create new list"
-               onclick={() => (listModalOpen = true)}>
-               <PlusOutline class="h-5 w-5 text-green-600" />
+	<Button
+		class="flex items-center gap-1 rounded px-2 py-1 hover:bg-gray-100"
+		aria-label="Create new list"
+        onclick={() => (listModalOpen = true)}>
+        <PlusOutline class="h-5 w-5 text-green-600" />
        </Button>
 </Tabs>
 
