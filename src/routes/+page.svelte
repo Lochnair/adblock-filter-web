@@ -19,7 +19,7 @@
 	import RecordModal from '$lib/components/RecordModal.svelte';
 	import type { DNSRecord } from '$lib/server/adblock';
 	import type { InferModel } from 'drizzle-orm';
-	import { filterLists } from '$lib/server/db/schema';
+	import type { filterLists } from '$lib/server/db/schema';
 	let { data } = $props<{
 		data: {
 			lists: InferModel<typeof filterLists>[];
