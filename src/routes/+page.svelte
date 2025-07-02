@@ -108,14 +108,14 @@
 
 <Tabs>
 	{#each lists as l (l.id)}
-		<TabItem open={selectedList === l.slug} on:click={() => changeTab(l.slug)}>
+		<TabItem open={selectedList === l.slug} onclick={() => changeTab(l.slug)}>
 			{#snippet titleSlot()}
 				<span class="flex items-center">
 					{l.slug}
 					<button
 						class="ms-2 rounded p-0.5 hover:bg-red-100"
 						aria-label="Delete list"
-						on:click|stopPropagation={() => removeList(l.slug)}
+						onclick={() => removeList(l.slug)}
 					>
 						<CloseOutline class="h-4 w-4 text-red-600" />
 					</button>
@@ -123,7 +123,7 @@
 			{/snippet}
 			<div class="space-y-4 p-4">
 				<div class="text-right">
-					<Button on:click={openCreate}>Add Record</Button>
+					<Button onclick={openCreate}>Add Record</Button>
 				</div>
 				<Table>
 					<TableHead>
@@ -139,14 +139,14 @@
 								<TableBodyCell>{r.type}</TableBodyCell>
 								<TableBodyCell>{r.value}</TableBodyCell>
 								<TableBodyCell class="flex justify-end gap-2">
-									<Button aria-label="Edit" size="xs" on:click={() => openEdit(r)}>
+									<Button aria-label="Edit" size="xs" onclick={() => openEdit(r)}>
 										<EditOutline class="h-4 w-4" />
 									</Button>
 									<Button
 										aria-label="Delete"
 										color="red"
 										size="xs"
-										on:click={() => removeRecord(r.id)}
+										onclick={() => removeRecord(r.id)}
 									>
 										<TrashBinOutline class="h-4 w-4" />
 									</Button>
