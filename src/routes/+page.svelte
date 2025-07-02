@@ -1,12 +1,9 @@
 <script lang="ts">
 	import {
-		A,
-		Button,
-		Card,
-		Input,
-		Label,
-		P,
-		Table,
+                A,
+                Button,
+                P,
+                Table,
 		TableBody,
 		TableBodyCell,
 		TableBodyRow,
@@ -16,8 +13,9 @@
 		TabItem
 	} from 'flowbite-svelte';
 	import { EditOutline, TrashBinOutline, CloseOutline, PlusOutline } from 'flowbite-svelte-icons';
-	import RecordModal from '$lib/components/RecordModal.svelte';
-	import type { DNSRecord } from '$lib/server/adblock';
+        import RecordModal from '$lib/components/RecordModal.svelte';
+        import ListModal from '$lib/components/ListModal.svelte';
+        import type { DNSRecord } from '$lib/server/adblock';
 	import type { InferSelectModel } from 'drizzle-orm';
 	import type { filterLists } from '$lib/server/db/schema';
 	let { data } = $props<{
@@ -32,10 +30,10 @@
 	let recordsByList = $state<Record<string, DNSRecord[]>>({
 		[selectedList]: data.records
 	});
-	let newList = $state('');
-	let modalOpen = $state(false);
-	let editing: DNSRecord | null = $state(null);
-	let error = $state('');
+        let modalOpen = $state(false);
+        let listModalOpen = $state(false);
+        let editing: DNSRecord | null = $state(null);
+        let error = $state('');
 
 	function openCreate() {
 		editing = null;
@@ -66,18 +64,7 @@
 		};
 	}
 
-	async function createListSubmit(event: SubmitEvent) {
-		event.preventDefault();
-		const form = new FormData(event.target as HTMLFormElement);
-		const slug = form.get('slug');
-		await fetch('/api/lists', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ slug })
-		});
-		newList = '';
-		await refresh();
-	}
+
 
 	async function loadRecords(slug: string) {
 		if (recordsByList[slug]) return;
@@ -163,29 +150,20 @@
 		</TabItem>
 	{/each}
 
-	<Button
-		class="flex items-center gap-1 rounded px-2 py-1 hover:bg-gray-100"
-		aria-label="Create new list">
-		<PlusOutline class="h-5 w-5 text-green-600" />
-	</Button>
+       <Button
+               class="flex items-center gap-1 rounded px-2 py-1 hover:bg-gray-100"
+               aria-label="Create new list"
+               onclick={() => (listModalOpen = true)}>
+               <PlusOutline class="h-5 w-5 text-green-600" />
+       </Button>
 </Tabs>
 
-<Card class="mx-auto mb-6 max-w-xl">
-	<form class="space-y-4" onsubmit={createListSubmit}>
-		<div>
-			<Label for="list-slug">List Slug</Label>
-			<Input id="list-slug" bind:value={newList} placeholder="new list slug" name="slug" />
-		</div>
-		<div class="text-right">
-			<Button type="submit">Create List</Button>
-		</div>
-	</form>
-</Card>
-
 <RecordModal
-	bind:open={modalOpen}
-	record={editing}
-	list={selectedList}
-	bind:error
-	afterSubmit={refresh}
+        bind:open={modalOpen}
+        record={editing}
+        list={selectedList}
+        bind:error
+        afterSubmit={refresh}
 />
+
+<ListModal bind:open={listModalOpen} afterSubmit={refresh} />
