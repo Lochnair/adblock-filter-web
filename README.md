@@ -8,7 +8,7 @@ This app stores DNS records in a Cloudflare D1 database and exposes them as
 AdGuard filter rules. Generated rules are written to an R2 bucket. The following
 record types are supported:
 
-* `A`, `AAAA`, `CNAME`, `HTTPS`, `MX`, `PTR`, `SRV`, and `TXT`.
+- `A`, `AAAA`, `CNAME`, `HTTPS`, `MX`, `PTR`, `SRV`, and `TXT`.
 
 Rules are emitted in the form `hostname$dnsrewrite=NOERROR;TYPE;VALUE`. For
 `HTTPS` records you may supply additional parameters such as `alpn`, `port` and
@@ -20,6 +20,18 @@ Example rules:
 ha.oandc.fun$dnsrewrite=NOERROR;A;172.20.20.2
 ha.oandc.fun$dnsrewrite=NOERROR;HTTPS;32 . alpn=h3 ipv4hint=172.20.20.2
 ```
+
+## Database setup
+
+Migrations are stored in `drizzle/migrations`. Generate a migration and apply it
+to your Cloudflare D1 database:
+
+```bash
+pnpm dlx drizzle-kit generate
+wrangler d1 migrations apply agh-dns-records
+```
+
+This creates the required `dns_records` table so the app can run without errors.
 
 ## Creating a project
 
