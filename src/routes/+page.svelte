@@ -8,6 +8,7 @@
 		Button,
 		Card,
 		Input,
+		Label,
 		Modal,
 		P,
 		Select,
@@ -165,27 +166,44 @@
 
 <h1 class="mb-4 text-2xl font-bold">DNS Records</h1>
 <Card class="mx-auto mb-6 max-w-xl">
-	<form class="flex items-end gap-2" on:submit|preventDefault={createList}>
-		<Input bind:value={newList} placeholder="new list slug" />
-		<Button type="submit">Create List</Button>
+	<form class="space-y-4" on:submit|preventDefault={createList}>
+		<div>
+			<Label for="list-slug">List Slug</Label>
+			<Input id="list-slug" bind:value={newList} placeholder="new list slug" />
+		</div>
+		<div class="text-right">
+			<Button type="submit">Create List</Button>
+		</div>
 	</form>
 </Card>
 <Card class="mx-auto mb-6 max-w-xl">
-	<Select bind:value={selectedList} onchange={load}>
-		{#each lists as l (l.id)}
-			<option value={l.slug}>{l.slug}</option>
-		{/each}
-	</Select>
+	<div class="space-y-1">
+		<Label for="list-select">Select List</Label>
+		<Select id="list-select" bind:value={selectedList} onchange={load}>
+			{#each lists as l (l.id)}
+				<option value={l.slug}>{l.slug}</option>
+			{/each}
+		</Select>
+	</div>
 </Card>
 <Card class="mx-auto mb-6 max-w-xl text-center">
 	<Button onclick={openCreate}>Add Record</Button>
 </Card>
 
 <Modal bind:open={modalOpen} onclose={() => (error = '')}>
-	<form method="dialog" on:submit|preventDefault={save}>
-		<Input bind:value={formName} placeholder="hostname" />
-		<Select bind:value={formType} items={rr_type} />
-		<Input bind:value={formValue} placeholder="value" />
+	<form method="dialog" class="space-y-4" on:submit|preventDefault={save}>
+		<div>
+			<Label for="record-name">Hostname</Label>
+			<Input id="record-name" bind:value={formName} placeholder="hostname" />
+		</div>
+		<div>
+			<Label for="record-type">Type</Label>
+			<Select id="record-type" bind:value={formType} items={rr_type} />
+		</div>
+		<div>
+			<Label for="record-value">Value</Label>
+			<Input id="record-value" bind:value={formValue} placeholder="value" />
+		</div>
 		{#if error}
 			<p class="text-red-600">{error}</p>
 		{/if}
