@@ -1,7 +1,10 @@
 import { json } from '@sveltejs/kit';
 import { getDB } from '$lib/server/db';
 import { dnsRecords, filterLists } from '$lib/server/db/schema';
+import type { InferModel } from 'drizzle-orm';
 import { eq } from 'drizzle-orm';
+
+type RecordRow = InferModel<typeof dnsRecords>;
 
 async function getListId(db: ReturnType<typeof getDB>, slug: string) {
 	const [list] = await db.select().from(filterLists).where(eq(filterLists.slug, slug)).all();
@@ -20,7 +23,10 @@ export async function GET({ platform, url }) {
 }
 
 export async function POST({ request, platform }) {
-	const data = await request.json();
+	const data = (await request.json()) as Partial<RecordRow> & { list?: string };
+	if (!data.name || !data.type || !data.value) {
+		return new Response('missing fields', { status: 400 });
+	}
 	const db = getDB(platform);
 	const slug = data.list ?? 'default';
 	const listId = await getListId(db, slug);
@@ -42,14 +48,17 @@ export async function DELETE({ url, platform }) {
 		return new Response('id required', { status: 400 });
 	}
 	const db = getDB(platform);
-	await db.delete(dnsRecords).where(eq(dnsRecords.id, id)).run();
+	const deleted = await db.delete(dnsRecords).where(eq(dnsRecords.id, id)).run();
+	if (!deleted) {
+		return new Response('not found', { status: 404 });
+	}
 	return new Response(null, { status: 200 });
 }
 
 export async function PUT({ request, platform }) {
-	const data = await request.json();
-	if (!data.id) {
-		return new Response('id required', { status: 400 });
+	const data = (await request.json()) as Partial<RecordRow>;
+	if (!data.id || !data.name || !data.type || !data.value) {
+		return new Response('missing fields', { status: 400 });
 	}
 	const db = getDB(platform);
 	await db

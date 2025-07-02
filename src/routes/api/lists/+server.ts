@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { getDB } from '$lib/server/db';
 import { filterLists } from '$lib/server/db/schema';
+import type { InferModel } from 'drizzle-orm';
 
 export async function GET({ platform }) {
 	const db = getDB(platform);
@@ -9,7 +10,7 @@ export async function GET({ platform }) {
 }
 
 export async function POST({ request, platform }) {
-	const data = await request.json();
+	const data = (await request.json()) as Partial<InferModel<typeof filterLists>>;
 	if (!data.slug) {
 		return new Response('slug required', { status: 400 });
 	}
