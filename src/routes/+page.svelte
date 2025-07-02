@@ -170,7 +170,7 @@
 </Card>
 
 <Modal bind:open={modalOpen} onclose={() => (error = '')}>
-	<form on:submit|preventDefault={save} slot="body">
+	<form on:submit|preventDefault={save}>
 		<Input bind:value={formName} placeholder="hostname" />
 		<Select bind:value={formType}>
 			<option>A</option>
