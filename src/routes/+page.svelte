@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { $effect, $state } from 'svelte';
 	import ip_pkg from 'ipaddr.js';
 	const { IPv4, IPv6 } = ip_pkg;
 	import domain_pkg from 'is-valid-domain';
@@ -33,18 +33,18 @@
 		slug: string;
 	}
 
-	let lists: List[] = [];
-	let selectedList = 'default';
+	let lists: List[] = $state([]);
+	let selectedList = $state('default');
 
-	let records: Record[] = [];
-	let newList = '';
+	let records: Record[] = $state([]);
+	let newList = $state('');
 
-	let modalOpen = false;
-	let editing: Record | null = null;
-	let formName = '';
-	let formType: Record['type'] = 'A';
-	let formValue = '';
-	let error = '';
+	let modalOpen = $state(false);
+	let editing: Record | null = $state(null);
+	let formName = $state('');
+	let formType: Record['type'] = $state('A');
+	let formValue = $state('');
+	let error = $state('');
 
 	async function loadLists() {
 		const res = await fetch('/api/lists');
@@ -147,7 +147,7 @@
 		await loadLists();
 	}
 
-	onMount(async () => {
+	$effect(async () => {
 		await loadLists();
 		await load();
 	});
