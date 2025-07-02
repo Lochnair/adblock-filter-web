@@ -67,3 +67,14 @@ npm run build
 You can preview the production build with `npm run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+
+## Running locally
+
+Install dependencies and start the dev server:
+
+```bash
+pnpm install
+pnpm run dev
+```
+
+Configure Cloudflare D1 and R2 bindings as shown in `wrangler.jsonc` before using `wrangler dev` or deploying.

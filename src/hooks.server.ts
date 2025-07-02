@@ -5,7 +5,7 @@ import { migrate } from 'drizzle-orm/d1/migrator';
 let migrated = false;
 
 export const handle: Handle = async ({ event, resolve }) => {
-	if (!migrated) {
+	if (!migrated && event.platform?.env?.RUN_MIGRATIONS === 'true') {
 		const db = getDB(event.platform);
 		await migrate(db, { migrationsFolder: './drizzle/migrations' });
 		migrated = true;

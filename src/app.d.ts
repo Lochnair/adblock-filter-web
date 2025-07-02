@@ -13,6 +13,7 @@ declare global {
 			env?: {
 				BUCKET: R2Bucket;
 				DB: D1Database;
+				RUN_MIGRATIONS?: string;
 			};
 			cf: CfProperties;
 			ctx: ExecutionContext;
