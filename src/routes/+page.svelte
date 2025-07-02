@@ -1,14 +1,16 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import ip_pkg from 'ipaddr.js';
-	const {IPv4, IPv6} = ip_pkg;
+	const { IPv4, IPv6 } = ip_pkg;
 	import domain_pkg from 'is-valid-domain';
 	const isValidDomain = domain_pkg;
 	import {
+		A,
 		Button,
 		Card,
 		Input,
 		Modal,
+		P,
 		Select,
 		Table,
 		TableBody,
@@ -221,6 +223,6 @@
 	</Table>
 </Card>
 
-<p class="mt-6 text-center">
-	<a class="text-blue-600 underline" href={`/filter/${selectedList}.txt`}>View Generated Filter</a>
-</p>
+<P class="mt-6 text-center">
+	<A class="text-blue-600 underline" href={`/filter/${selectedList}.txt`}>View Generated Filter</A>
+</P>
