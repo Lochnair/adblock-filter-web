@@ -1,20 +1,23 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Input } from 'flowbite-svelte';
-	import { Select } from 'flowbite-svelte';
-	import { Button } from 'flowbite-svelte';
-	import { Modal } from 'flowbite-svelte';
+	import ip_pkg from 'ipaddr.js';
+	const {IPv4, IPv6} = ip_pkg;
+	import domain_pkg from 'is-valid-domain';
+	const isValidDomain = domain_pkg;
 	import {
+		Button,
+		Card,
+		Input,
+		Modal,
+		Select,
 		Table,
-		TableHead,
-		TableHeadCell,
 		TableBody,
+		TableBodyCell,
 		TableBodyRow,
-		TableBodyCell
+		TableHead,
+		TableHeadCell
 	} from 'flowbite-svelte';
-	import { Card } from 'flowbite-svelte';
-	import TrashBinOutline from 'flowbite-svelte-icons/TrashBinOutline.svelte';
-	import EditOutline from 'flowbite-svelte-icons/EditOutline.svelte';
+	import { EditOutline, TrashBinOutline } from 'flowbite-svelte-icons';
 
 	interface Record {
 		id: number;
@@ -81,18 +84,16 @@
 			error = 'value required';
 			return false;
 		}
-		const ipv4 = /^(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)){3}$/;
-		const ipv6 = /^[0-9a-fA-F:]+$/;
-		const domain = /^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
-		if (formType === 'A' && !ipv4.test(formValue)) {
+
+		if (formType === 'A' && !IPv4.isIPv4(formValue)) {
 			error = 'invalid IPv4 address';
 			return false;
 		}
-		if (formType === 'AAAA' && !ipv6.test(formValue)) {
+		if (formType === 'AAAA' && !IPv6.isIPv6(formValue)) {
 			error = 'invalid IPv6 address';
 			return false;
 		}
-		if (['CNAME', 'PTR', 'HTTPS', 'MX', 'SRV'].includes(formType) && !domain.test(formValue)) {
+		if (['CNAME', 'PTR', 'HTTPS', 'MX', 'SRV'].includes(formType) && !isValidDomain(formValue)) {
 			error = 'invalid domain';
 			return false;
 		}
@@ -152,24 +153,24 @@
 
 <h1 class="mb-4 text-2xl font-bold">DNS Records</h1>
 <Card class="mx-auto mb-6 max-w-xl">
-	<form on:submit|preventDefault={createList} class="flex items-end gap-2">
+	<form class="flex items-end gap-2" on:submit|preventDefault={createList}>
 		<Input bind:value={newList} placeholder="new list slug" />
 		<Button type="submit">Create List</Button>
 	</form>
 </Card>
 <Card class="mx-auto mb-6 max-w-xl">
-	<Select bind:value={selectedList} on:change={load}>
+	<Select bind:value={selectedList} onchange={load}>
 		{#each lists as l (l.id)}
 			<option value={l.slug}>{l.slug}</option>
 		{/each}
 	</Select>
 </Card>
 <Card class="mx-auto mb-6 max-w-xl text-center">
-	<Button on:click={openCreate}>Add Record</Button>
+	<Button onclick={openCreate}>Add Record</Button>
 </Card>
 
-<Modal size="md" bind:open={modalOpen} on:close={() => (error = '')}>
-	<form slot="body" on:submit|preventDefault={save} class="flex flex-col gap-4">
+<Modal bind:open={modalOpen} onclose={() => (error = '')}>
+	<form on:submit|preventDefault={save} slot="body">
 		<Input bind:value={formName} placeholder="hostname" />
 		<Select bind:value={formType}>
 			<option>A</option>
@@ -186,7 +187,7 @@
 			<p class="text-red-600">{error}</p>
 		{/if}
 		<div class="flex justify-end gap-2">
-			<Button type="button" color="gray" on:click={() => (modalOpen = false)}>Cancel</Button>
+			<Button color="gray" onclick={() => (modalOpen = false)} type="button">Cancel</Button>
 			<Button type="submit">Save</Button>
 		</div>
 	</form>
@@ -207,10 +208,10 @@
 					<TableBodyCell>{r.type}</TableBodyCell>
 					<TableBodyCell>{r.value}</TableBodyCell>
 					<TableBodyCell class="flex justify-end gap-2">
-						<Button size="xs" on:click={() => openEdit(r)}>
+						<Button size="xs" onclick={() => openEdit(r)}>
 							<EditOutline class="h-4 w-4" />
 						</Button>
-						<Button color="red" size="xs" on:click={() => remove(r.id)}>
+						<Button color="red" size="xs" onclick={() => remove(r.id)}>
 							<TrashBinOutline class="h-4 w-4" />
 						</Button>
 					</TableBodyCell>
@@ -221,5 +222,5 @@
 </Card>
 
 <p class="mt-6 text-center">
-	<a href={`/filter/${selectedList}.txt`} class="text-blue-600 underline">View Generated Filter</a>
+	<a class="text-blue-600 underline" href={`/filter/${selectedList}.txt`}>View Generated Filter</a>
 </p>

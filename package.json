@@ -48,7 +48,9 @@
 	},
 	"dependencies": {
 		"@libsql/client": "^0.15.9",
-		"drizzle-orm": "^0.44.2"
+		"drizzle-orm": "^0.44.2",
+		"ipaddr.js": "^2.2.0",
+		"is-valid-domain": "^0.1.6"
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": [
