@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/d1';
 
-export async function getDB() {
-       if (!platform.env.DB) {
+export function getDB(platform: App.Platform | Readonly<App.Platform> | undefined) {
+       if (!platform?.env?.DB) {
               throw new Error('DB binding is not available');
        }
 
