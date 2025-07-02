@@ -15,7 +15,7 @@
 		Tabs,
 		TabItem
 	} from 'flowbite-svelte';
-	import { EditOutline, TrashBinOutline, CloseOutline } from 'flowbite-svelte-icons';
+	import { EditOutline, TrashBinOutline, CloseOutline, PlusOutline } from 'flowbite-svelte-icons';
 	import RecordModal from '$lib/components/RecordModal.svelte';
 	import type { DNSRecord } from '$lib/server/adblock';
 	import type { InferSelectModel } from 'drizzle-orm';
@@ -162,6 +162,12 @@
 			</div>
 		</TabItem>
 	{/each}
+
+	<Button
+		class="flex items-center gap-1 rounded px-2 py-1 hover:bg-gray-100"
+		aria-label="Create new list">
+		<PlusOutline class="h-5 w-5 text-green-600" />
+	</Button>
 </Tabs>
 
 <Card class="mx-auto mb-6 max-w-xl">
