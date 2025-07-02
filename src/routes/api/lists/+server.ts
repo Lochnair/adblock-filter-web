@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { getDB } from '$lib/server/db';
-import { filterLists } from '$lib/server/db/schema';
+import { filterLists, dnsRecords } from '$lib/server/db/schema';
 import type { InferInsertModel } from 'drizzle-orm';
 import { eq } from 'drizzle-orm';
 
@@ -16,7 +16,12 @@ export async function DELETE({ request, platform }) {
 	if (!data.slug) {
 		return new Response('slug required', { status: 400 });
 	}
-	await db.delete(filterLists).where(eq(filterLists.slug, data.slug));
+	const [list] = await db.select().from(filterLists).where(eq(filterLists.slug, data.slug)).all();
+	if (!list) {
+		return new Response('not found', { status: 404 });
+	}
+	await db.delete(dnsRecords).where(eq(dnsRecords.listId, list.id)).run();
+	await db.delete(filterLists).where(eq(filterLists.id, list.id)).run();
 	return new Response(null, { status: 204 });
 }
 
