@@ -157,9 +157,9 @@
 		await loadLists();
 	}
 
-	$effect(async () => {
-		await loadLists();
-		await load();
+	$effect(() => {
+		loadLists();
+		load();
 	});
 </script>
 
