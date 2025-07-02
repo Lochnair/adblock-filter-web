@@ -5,6 +5,6 @@
 </script>
 
 <NavBar />
-<div class="p-4">
+<div class="container">
 	{@render children()}
 </div>
