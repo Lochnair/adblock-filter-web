@@ -6,7 +6,6 @@
 		Input,
 		Label,
 		P,
-		Select,
 		Table,
 		TableBody,
 		TableBodyCell,
@@ -16,7 +15,7 @@
 		Tabs,
 		TabItem
 	} from 'flowbite-svelte';
-	import { EditOutline, TrashBinOutline, CloseOutline, PlusOutline } from 'flowbite-svelte-icons';
+	import { EditOutline, TrashBinOutline, CloseOutline } from 'flowbite-svelte-icons';
 	import RecordModal from '$lib/components/RecordModal.svelte';
 	import type { DNSRecord } from '$lib/server/adblock';
 	import type { InferSelectModel } from 'drizzle-orm';
@@ -28,9 +27,11 @@
 			selectedList: string;
 		};
 	}>();
-	let lists = $derived(data.lists);
-	let records = $derived(data.records);
-	let selectedList = $derived(data.selectedList);
+	let lists = $state(data.lists);
+	let selectedList = $state(data.selectedList);
+	let recordsByList = $state<Record<string, DNSRecord[]>>({
+		[selectedList]: data.records
+	});
 	let newList = $state('');
 	let modalOpen = $state(false);
 	let editing: DNSRecord | null = $state(null);
@@ -49,55 +50,118 @@
 
 	async function removeRecord(id: number) {
 		if (!confirm('Are you sure you want to delete this record?')) return;
-		const form = new FormData();
-		form.set('id', id.toString());
-		await fetch('/api/records', { method: 'DELETE', body: form });
+		await fetch(`/api/records?id=${id}`, { method: 'DELETE' });
 		await refresh();
 	}
 
 	async function refresh() {
-		const res = await fetch(`/api/records?list=${selectedList}`);
-		const json: Record<string, unknown> = await res.json();
-		const data = json as { lists: InferSelectModel<typeof filterLists>[]; records: DNSRecord[] };
-		lists = data.lists;
-		records = data.records;
+		const [listRes, recordRes] = await Promise.all([
+			fetch('/api/lists'),
+			fetch(`/api/records?list=${selectedList}`)
+		]);
+		lists = await listRes.json();
+		recordsByList = {
+			...recordsByList,
+			[selectedList]: await recordRes.json()
+		};
 	}
 
 	async function createListSubmit(event: SubmitEvent) {
 		event.preventDefault();
 		const form = new FormData(event.target as HTMLFormElement);
-		await fetch('/api/lists', { method: 'POST', body: form });
+		const slug = form.get('slug');
+		await fetch('/api/lists', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ slug })
+		});
 		newList = '';
 		await refresh();
 	}
 
-	let activeTab = $state(0); // index of the currently displayed list
+	async function loadRecords(slug: string) {
+		if (recordsByList[slug]) return;
+		const res = await fetch(`/api/records?list=${slug}`);
+		recordsByList = { ...recordsByList, [slug]: await res.json() };
+	}
+
+	function changeTab(slug: string) {
+		selectedList = slug;
+		loadRecords(slug);
+	}
+
+	async function removeList(slug: string) {
+		if (!confirm('Delete this list and all records?')) return;
+		await fetch('/api/lists', {
+			method: 'DELETE',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ slug })
+		});
+		delete recordsByList[slug];
+		await refresh();
+		if (selectedList === slug && lists.length) {
+			selectedList = lists[0].slug;
+			loadRecords(selectedList);
+		}
+	}
 </script>
 
 <Tabs>
 	{#each lists as l (l.id)}
-		<TabItem open={l.id === activeTab}>
+		<TabItem open={selectedList === l.slug} on:click={() => changeTab(l.slug)}>
 			{#snippet titleSlot()}
 				<span class="flex items-center">
 					{l.slug}
-					<button class="ms-2 rounded p-0.5 hover:bg-red-100" aria-label="Delete list">
+					<button
+						class="ms-2 rounded p-0.5 hover:bg-red-100"
+						aria-label="Delete list"
+						on:click|stopPropagation={() => removeList(l.slug)}
+					>
 						<CloseOutline class="h-4 w-4 text-red-600" />
 					</button>
 				</span>
 			{/snippet}
-			<div class="p-4">
-				<!-- … your list’s items … -->
+			<div class="space-y-4 p-4">
+				<div class="text-right">
+					<Button on:click={openCreate}>Add Record</Button>
+				</div>
+				<Table>
+					<TableHead>
+						<TableHeadCell>Hostname</TableHeadCell>
+						<TableHeadCell>Type</TableHeadCell>
+						<TableHeadCell>Value</TableHeadCell>
+						<TableHeadCell></TableHeadCell>
+					</TableHead>
+					<TableBody>
+						{#each recordsByList[l.slug] ?? [] as r (r.id)}
+							<TableBodyRow>
+								<TableBodyCell>{r.name}</TableBodyCell>
+								<TableBodyCell>{r.type}</TableBodyCell>
+								<TableBodyCell>{r.value}</TableBodyCell>
+								<TableBodyCell class="flex justify-end gap-2">
+									<Button aria-label="Edit" size="xs" on:click={() => openEdit(r)}>
+										<EditOutline class="h-4 w-4" />
+									</Button>
+									<Button
+										aria-label="Delete"
+										color="red"
+										size="xs"
+										on:click={() => removeRecord(r.id)}
+									>
+										<TrashBinOutline class="h-4 w-4" />
+									</Button>
+								</TableBodyCell>
+							</TableBodyRow>
+						{/each}
+					</TableBody>
+				</Table>
+				<P class="text-center">
+					<A class="text-blue-600 underline" href={`/filter/${l.slug}.txt`}>View Generated Filter</A
+					>
+				</P>
 			</div>
 		</TabItem>
 	{/each}
-
-	<button
-		class="flex items-center gap-1 rounded px-2 py-1 hover:bg-gray-100"
-		aria-label="Create new list"
-	>
-		<PlusOutline class="h-5 w-5 text-green-600" />
-		<span class="text-sm">New</span>
-	</button>
 </Tabs>
 
 <Card class="mx-auto mb-6 max-w-xl">
@@ -111,19 +175,6 @@
 		</div>
 	</form>
 </Card>
-<Card class="mx-auto mb-6 max-w-xl">
-	<div class="space-y-1">
-		<Label for="list-select">Select List</Label>
-		<Select id="list-select" bind:value={selectedList} onchange={refresh}>
-			{#each lists as l (l.id)}
-				<option value={l.slug}>{l.slug}</option>
-			{/each}
-		</Select>
-	</div>
-</Card>
-<Card class="mx-auto mb-6 max-w-xl text-center">
-	<Button onclick={openCreate}>Add Record</Button>
-</Card>
 
 <RecordModal
 	bind:open={modalOpen}
@@ -132,35 +183,3 @@
 	bind:error
 	afterSubmit={refresh}
 />
-
-<Card class="mx-auto mt-6 max-w-xl">
-	<Table>
-		<TableHead>
-			<TableHeadCell>Hostname</TableHeadCell>
-			<TableHeadCell>Type</TableHeadCell>
-			<TableHeadCell>Value</TableHeadCell>
-			<TableHeadCell></TableHeadCell>
-		</TableHead>
-		<TableBody>
-			{#each records as r (r.id)}
-				<TableBodyRow>
-					<TableBodyCell>{r.name}</TableBodyCell>
-					<TableBodyCell>{r.type}</TableBodyCell>
-					<TableBodyCell>{r.value}</TableBodyCell>
-					<TableBodyCell class="flex justify-end gap-2">
-						<Button aria-label="Edit" size="xs" onclick={() => openEdit(r)}>
-							<EditOutline class="h-4 w-4" />
-						</Button>
-						<Button aria-label="Delete" color="red" size="xs" onclick={() => removeRecord(r.id)}>
-							<TrashBinOutline class="h-4 w-4" />
-						</Button>
-					</TableBodyCell>
-				</TableBodyRow>
-			{/each}
-		</TableBody>
-	</Table>
-</Card>
-
-<P class="mt-6 text-center">
-	<A class="text-blue-600 underline" href={`/filter/${selectedList}.txt`}>View Generated Filter</A>
-</P>
