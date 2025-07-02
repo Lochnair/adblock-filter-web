@@ -1,6 +1,6 @@
 import { getDB } from '$lib/server/db';
 import { dnsRecords, filterLists } from '$lib/server/db/schema';
-import type { InferModel } from 'drizzle-orm';
+import type { InferSelectModel } from 'drizzle-orm';
 import type { PageServerLoad, Actions } from './$types';
 import { eq } from 'drizzle-orm';
 
@@ -9,7 +9,7 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 	const slug = url.searchParams.get('list') ?? 'default';
 	const lists = await db.select().from(filterLists).all();
 	const [list] = lists.filter((l) => l.slug === slug);
-	let records = [] as InferModel<typeof dnsRecords>[];
+	let records = [] as InferSelectModel<typeof dnsRecords>[];
 	if (list) {
 		records = await db.select().from(dnsRecords).where(eq(dnsRecords.listId, list.id)).all();
 	}
