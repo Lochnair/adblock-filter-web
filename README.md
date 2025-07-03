@@ -1,80 +1,46 @@
-# sv
+# Adblock Filter Web
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+A SvelteKit application that manages DNS records and publishes them as AdGuard filter rules. Records are stored in a Cloudflare D1 database and can be consumed by AdGuard Home for DNS rewrites.
 
-## DNS record tool
+## Motivation
 
-This app stores DNS records in a Cloudflare D1 database and exposes them as
-AdGuard filter rules. The following
-record types are supported:
+AdGuard Home does not forward SOA lookups to upstream resolvers. ACME clients need SOA responses during certificate issuance, so DNS rewrites alone break automation. By serving DNS records as an AdGuard filter, this project answers those lookups directly and allows ACME clients to validate domains. The same filter lists can be reused on multiple AGH instances without additional sync tooling.
 
-- `A`, `AAAA`, `CNAME`, `HTTPS`, `MX`, `PTR`, `SRV`, and `TXT`.
+## Supported record types
 
-Rules are emitted in the form `hostname$dnsrewrite=NOERROR;TYPE;VALUE`. For
-`HTTPS` records you may supply additional parameters such as `alpn`, `port` and
-`ipv4hint` as supported by AdGuard.
+- `A`, `AAAA`, `CNAME`, `HTTPS`, `MX`, `PTR`, `SRV`, and `TXT`
 
-Example rules:
+Records are emitted as `hostname$dnsrewrite=NOERROR;TYPE;VALUE`. `HTTPS` records may include `alpn`, `port` and `ipv4hint` parameters supported by AdGuard.
 
-```
-ha.oandc.fun$dnsrewrite=NOERROR;A;172.20.20.2
-ha.oandc.fun$dnsrewrite=NOERROR;HTTPS;32 . alpn=h3 ipv4hint=172.20.20.2
-```
+### Limitations
+
+- Only the record types above are supported. Queries for other types are blocked from reaching upstream resolvers.
+- SOA queries are always forwarded so certificate automation continues to work.
 
 ## Database setup
 
-Migrations are stored in `drizzle/migrations`. Generate a migration and apply it
-to your Cloudflare D1 database:
+Migrations live in `drizzle/migrations`. To create the required tables, run:
 
 ```bash
 pnpm dlx drizzle-kit generate
 wrangler d1 migrations apply agh-dns-records
 ```
 
-This creates the required `dns_records` table so the app can run without errors.
+## Development
 
-## Creating a project
+1. Copy `.env.example` to `.env` and adjust `DATABASE_URL` if needed.
+2. Install dependencies with `pnpm install`.
+3. Start the dev server with `pnpm run dev`.
 
-If you're seeing this, you've probably already done this step. Congrats!
+The filter list is available at `/filter.txt` when the server is running.
 
-```bash
-# create a new project in the current directory
-npx sv create
+## Build and deploy
 
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Create a production build and deploy to Cloudflare Workers:
 
 ```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+pnpm run build
+wrangler deploy
 ```
 
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
-
-## Running locally
-
-Install dependencies and start the dev server:
-
-```bash
-pnpm install
-pnpm run dev
-```
-
-Configure Cloudflare D1 bindings as shown in `wrangler.jsonc` before using `wrangler dev` or deploying.
+Use `pnpm run preview` to preview the production build locally.
