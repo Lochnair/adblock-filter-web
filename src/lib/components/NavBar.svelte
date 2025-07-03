@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Navbar, NavBrand, NavHamburger, NavUl, NavLi, DarkMode } from 'flowbite-svelte';
+	import { Navbar, NavBrand, DarkMode } from 'flowbite-svelte';
 </script>
 
 <Navbar>

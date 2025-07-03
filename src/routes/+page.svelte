@@ -1,9 +1,9 @@
 <script lang="ts">
 	import {
-                A,
-                Button,
-                P,
-                Table,
+		A,
+		Button,
+		P,
+		Table,
 		TableBody,
 		TableBodyCell,
 		TableBodyRow,
@@ -13,9 +13,9 @@
 		TabItem
 	} from 'flowbite-svelte';
 	import { EditOutline, TrashBinOutline, CloseOutline, PlusOutline } from 'flowbite-svelte-icons';
-        import RecordModal from '$lib/components/RecordModal.svelte';
-        import ListModal from '$lib/components/ListModal.svelte';
-        import type { DNSRecord } from '$lib/server/adblock';
+	import RecordModal from '$lib/components/RecordModal.svelte';
+	import ListModal from '$lib/components/ListModal.svelte';
+	import type { DNSRecord } from '$lib/server/adblock';
 	import type { InferSelectModel } from 'drizzle-orm';
 	import type { filterLists } from '$lib/server/db/schema';
 	let { data } = $props<{
@@ -30,10 +30,10 @@
 	let recordsByList = $state<Record<string, DNSRecord[]>>({
 		[selectedList]: data.records
 	});
-        let modalOpen = $state(false);
-        let listModalOpen = $state(false);
-        let editing: DNSRecord | null = $state(null);
-        let error = $state('');
+	let modalOpen = $state(false);
+	let listModalOpen = $state(false);
+	let editing: DNSRecord | null = $state(null);
+	let error = $state('');
 
 	function openCreate() {
 		editing = null;
@@ -64,8 +64,6 @@
 		};
 	}
 
-
-
 	async function loadRecords(slug: string) {
 		if (recordsByList[slug]) return;
 		const res = await fetch(`/api/records?list=${slug}`);
@@ -93,7 +91,7 @@
 	}
 </script>
 
-<Tabs>
+<Tabs tabStyle="underline">
 	{#each lists as l (l.id)}
 		<TabItem open={selectedList === l.slug} onclick={() => changeTab(l.slug)}>
 			{#snippet titleSlot()}
@@ -151,21 +149,24 @@
 	{/each}
 
 	<Button
-		class="p-2!" size="xs"
-		pill={true} outline={true}
+		class="p-2!"
+		size="xs"
+		pill={true}
+		outline={true}
 		color="green"
 		aria-label="Create new list"
-        onclick={() => (listModalOpen = true)}>
-        <PlusOutline class="h-3 w-3" />
-       </Button>
+		onclick={() => (listModalOpen = true)}
+	>
+		<PlusOutline class="h-3 w-3" />
+	</Button>
 </Tabs>
 
 <RecordModal
-        bind:open={modalOpen}
-        record={editing}
-        list={selectedList}
-        bind:error
-        afterSubmit={refresh}
+	bind:open={modalOpen}
+	record={editing}
+	list={selectedList}
+	bind:error
+	afterSubmit={refresh}
 />
 
 <ListModal bind:open={listModalOpen} afterSubmit={refresh} />
