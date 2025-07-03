@@ -5,7 +5,7 @@ Everything you need to build a Svelte project, powered by [`sv`](https://github.
 ## DNS record tool
 
 This app stores DNS records in a Cloudflare D1 database and exposes them as
-AdGuard filter rules. Generated rules are written to an R2 bucket. The following
+AdGuard filter rules. The following
 record types are supported:
 
 - `A`, `AAAA`, `CNAME`, `HTTPS`, `MX`, `PTR`, `SRV`, and `TXT`.
@@ -77,4 +77,4 @@ pnpm install
 pnpm run dev
 ```
 
-Configure Cloudflare D1 and R2 bindings as shown in `wrangler.jsonc` before using `wrangler dev` or deploying.
+Configure Cloudflare D1 bindings as shown in `wrangler.jsonc` before using `wrangler dev` or deploying.
