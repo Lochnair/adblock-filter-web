@@ -4,7 +4,7 @@
 	let { children } = $props();
 </script>
 
-<NavBar />
-<div class="container">
+<div class="container mx-auto">
+	<NavBar />
 	{@render children()}
 </div>
