@@ -151,10 +151,12 @@
 	{/each}
 
 	<Button
-		class="flex items-center gap-1 rounded px-2 py-1 hover:bg-gray-100"
+		class="p-2!" size="xs"
+		pill={true} outline={true}
+		color="green"
 		aria-label="Create new list"
         onclick={() => (listModalOpen = true)}>
-        <PlusOutline class="h-5 w-5 text-green-600" />
+        <PlusOutline class="h-3 w-3" />
        </Button>
 </Tabs>
 
