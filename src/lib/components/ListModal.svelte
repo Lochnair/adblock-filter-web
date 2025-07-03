@@ -1,13 +1,19 @@
 <script lang="ts">
-	import { Modal, Button, Label, Input } from 'flowbite-svelte';
+	import { Modal, Button, Label, Input, Alert } from 'flowbite-svelte';
 
 	let { open = $bindable(false), afterSubmit = $bindable(async () => {}) } = $props();
 
 	let slug = $state('');
 	let error = $state('');
+	const slugRegex = /^[a-z0-9-]+$/i;
+	let slugError: string | null = $derived(slug && slugRegex.test(slug) ? null : 'invalid slug');
+	let displayError: string | null = $derived(slugError || error || null);
 
 	async function submit(event: SubmitEvent) {
 		event.preventDefault();
+		if (slugError) {
+			return;
+		}
 		const res = await fetch('/api/lists', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
@@ -29,12 +35,12 @@
 			<Label for="list-slug">List Slug</Label>
 			<Input id="list-slug" bind:value={slug} placeholder="new list slug" />
 		</div>
-		{#if error}
-			<p class="text-red-600">{error}</p>
+		{#if displayError}
+			<Alert color="failure" class="mt-2">{displayError}</Alert>
 		{/if}
 		<div class="flex justify-end gap-2">
 			<Button color="gray" type="button" onclick={() => (open = false)}>Cancel</Button>
-			<Button type="submit">Create List</Button>
+			<Button type="submit" disabled={slugError}>Create List</Button>
 		</div>
 	</form>
 </Modal>
