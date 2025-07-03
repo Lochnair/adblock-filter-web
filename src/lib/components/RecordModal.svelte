@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { Modal, Button, Label, Input, Select } from 'flowbite-svelte';
+	import { Modal, Button, Label, Input, Select, Alert } from 'flowbite-svelte';
 	import type { DNSRecord } from '$lib/server/adblock';
 	import { RECORD_TYPES } from '$lib/record-types';
+	import { validateRecord } from '$lib/validation';
 
 	let {
 		open = $bindable(false),
@@ -14,9 +15,17 @@
 	let name = $derived(record?.name);
 	let type: DNSRecord['type'] = $derived(record?.type || 'A');
 	let value = $derived(record?.value);
+	let clientError: string | null = $derived(
+		validateRecord({ name: name ?? '', type, value: value ?? '' })
+	);
+	let displayError: string | null = $derived(clientError || error || null);
 
 	async function recordSubmit(event: SubmitEvent) {
 		event.preventDefault();
+		if (clientError) {
+			error = clientError;
+			return;
+		}
 		const payload = {
 			id: record?.id,
 			name,
@@ -61,12 +70,12 @@
 			<Label for="record-value">Value</Label>
 			<Input id="record-value" bind:value name="value" placeholder="value" />
 		</div>
-		{#if error}
-			<p class="text-red-600">{error}</p>
+		{#if displayError}
+			<Alert color="failure" class="mt-2">{displayError}</Alert>
 		{/if}
 		<div class="flex justify-end gap-2">
 			<Button color="gray" type="button" onclick={() => (open = false)}>Cancel</Button>
-			<Button type="submit">Save</Button>
+			<Button type="submit" disabled={clientError}>Save</Button>
 		</div>
 	</form>
 </Modal>

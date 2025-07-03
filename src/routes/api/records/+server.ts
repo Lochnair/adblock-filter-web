@@ -3,7 +3,7 @@ import { getDB } from '$lib/server/db';
 import { dnsRecords, filterLists } from '$lib/server/db/schema';
 import type { InferSelectModel } from 'drizzle-orm';
 import { eq, and, ne } from 'drizzle-orm';
-import { validateRecord } from '$lib/server/validation';
+import { validateRecord } from '$lib/validation';
 
 type RecordRow = InferSelectModel<typeof dnsRecords>;
 
