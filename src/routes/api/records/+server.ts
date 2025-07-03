@@ -2,7 +2,8 @@ import { json } from '@sveltejs/kit';
 import { getDB } from '$lib/server/db';
 import { dnsRecords, filterLists } from '$lib/server/db/schema';
 import type { InferSelectModel } from 'drizzle-orm';
-import { eq } from 'drizzle-orm';
+import { eq, and, ne } from 'drizzle-orm';
+import { validateRecord } from '$lib/server/validation';
 
 type RecordRow = InferSelectModel<typeof dnsRecords>;
 
@@ -24,14 +25,34 @@ export async function GET({ platform, url }) {
 
 export async function POST({ request, platform }) {
 	const data = (await request.json()) as Partial<RecordRow> & { list?: string };
-	if (!data.name || !data.type || !data.value) {
-		return new Response('missing fields', { status: 400 });
+	const error = validateRecord({
+		name: data.name as string,
+		type: data.type as string,
+		value: data.value as string
+	});
+	if (error) {
+		return new Response(error, { status: 400 });
 	}
 	const db = getDB(platform);
 	const slug = data.list ?? 'default';
 	const listId = await getListId(db, slug);
 	if (!listId) {
 		return new Response('list not found', { status: 404 });
+	}
+	const dup = await db
+		.select()
+		.from(dnsRecords)
+		.where(
+			and(
+				eq(dnsRecords.listId, listId),
+				eq(dnsRecords.name, data.name as string),
+				eq(dnsRecords.type, data.type as string),
+				eq(dnsRecords.value, data.value as string)
+			)
+		)
+		.all();
+	if (dup.length) {
+		return new Response('duplicate record', { status: 409 });
 	}
 	await db.insert(dnsRecords).values({
 		name: data.name,
@@ -57,10 +78,38 @@ export async function DELETE({ url, platform }) {
 
 export async function PUT({ request, platform }) {
 	const data = (await request.json()) as Partial<RecordRow>;
-	if (!data.id || !data.name || !data.type || !data.value) {
+	if (!data.id) {
 		return new Response('missing fields', { status: 400 });
 	}
+	const error = validateRecord({
+		name: data.name as string,
+		type: data.type as string,
+		value: data.value as string
+	});
+	if (error) {
+		return new Response(error, { status: 400 });
+	}
 	const db = getDB(platform);
+	const [rec] = await db.select().from(dnsRecords).where(eq(dnsRecords.id, data.id)).all();
+	if (!rec) {
+		return new Response('not found', { status: 404 });
+	}
+	const dup = await db
+		.select()
+		.from(dnsRecords)
+		.where(
+			and(
+				eq(dnsRecords.listId, rec.listId),
+				eq(dnsRecords.name, data.name as string),
+				eq(dnsRecords.type, data.type as string),
+				eq(dnsRecords.value, data.value as string),
+				ne(dnsRecords.id, data.id)
+			)
+		)
+		.all();
+	if (dup.length) {
+		return new Response('duplicate record', { status: 409 });
+	}
 	await db
 		.update(dnsRecords)
 		.set({ name: data.name, type: data.type, value: data.value })
