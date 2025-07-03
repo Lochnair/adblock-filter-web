@@ -3,7 +3,6 @@
 // Runtime types generated with workerd@1.20250617.0 2025-06-13 nodejs_compat
 declare namespace Cloudflare {
 	interface Env {
-		BUCKET: R2Bucket;
 		DB: D1Database;
 		ASSETS: Fetcher;
 	}

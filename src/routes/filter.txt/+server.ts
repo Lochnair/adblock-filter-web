@@ -10,7 +10,6 @@ export const GET: RequestHandler = async ({ platform }) => {
 	if (!list) return new Response('list not found', { status: 404 });
 	const records = await db.select().from(dnsRecords).where(eq(dnsRecords.listId, list.id)).all();
 	const content = generateFilter(records);
-	await platform?.env?.BUCKET.put('filter.txt', content);
 	return new Response(content, {
 		headers: { 'content-type': 'text/plain' }
 	});

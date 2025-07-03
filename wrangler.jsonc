@@ -23,13 +23,8 @@
 			"database_id": "d7dcfbe5-522b-4bf8-80e2-a45546184c95",
 			"migrations_dir": "drizzle/migrations"
 		}
-	],
-	"r2_buckets": [
-		{
-			"binding": "BUCKET",
-			"bucket_name": "agh-rules"
-		}
 	]
+
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
