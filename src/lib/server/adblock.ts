@@ -10,14 +10,14 @@ export function toFilter(record: DNSRecord): string {
 export function generateFilter(records: DNSRecord[]): string {
 	const groups = new Map<string, DNSRecord[]>();
 	for (const record of records) {
-		const arr = groups.get(record.name) ?? [];
-		arr.push(record);
-		groups.set(record.name, arr);
+		const arr = groups.get(record.name);
+		if (arr) arr.push(record);
+		else groups.set(record.name, [record]);
 	}
 
 	const lines: string[] = [];
 
-	for (const [name, recs] of groups) {
+	for (const [name, recs] of [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
 		for (const r of recs) {
 			lines.push(toFilter(r));
 		}
