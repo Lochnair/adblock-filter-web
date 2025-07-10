@@ -16,7 +16,7 @@ export async function GET({ platform, url }) {
 	const db = getDB(platform);
 	const slug = url.searchParams.get('list') ?? 'default';
 	const listId = await getListId(db, slug);
-	if (!listId) {
+	if (listId === undefined) {
 		return json([]);
 	}
 	const records = await db.select().from(dnsRecords).where(eq(dnsRecords.listId, listId)).all();
@@ -69,11 +69,11 @@ export async function DELETE({ url, platform }) {
 		return new Response('id required', { status: 400 });
 	}
 	const db = getDB(platform);
-	const deleted = await db.delete(dnsRecords).where(eq(dnsRecords.id, id)).run();
-	if (!deleted) {
+	const res = await db.delete(dnsRecords).where(eq(dnsRecords.id, id)).run();
+	if (res.meta.changes === 0) {
 		return new Response('not found', { status: 404 });
 	}
-	return new Response(null, { status: 200 });
+	return new Response(null, { status: 204 });
 }
 
 export async function PUT({ request, platform }) {
