@@ -31,6 +31,14 @@ export async function POST({ request, platform }) {
 		return new Response('slug required', { status: 400 });
 	}
 	const db = getDB(platform);
+	const [existing] = await db
+		.select()
+		.from(filterLists)
+		.where(eq(filterLists.slug, data.slug))
+		.all();
+	if (existing) {
+		return new Response('duplicate slug', { status: 409 });
+	}
 	await db.insert(filterLists).values({ slug: data.slug });
 	return new Response(null, { status: 201 });
 }
