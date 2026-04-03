@@ -66,7 +66,7 @@ export function validateRecord(rec: RecordInput): string | null {
 			const priority = parts.shift()!;
 			if (!/^\d+$/.test(priority)) return 'invalid priority';
 			const target = parts.shift()!;
-			if (!isDomain(target)) return 'invalid target';
+			if (target !== '.' && !isDomain(target)) return 'invalid target';
 			for (const param of parts) {
 				if (param.startsWith('alpn=')) {
 					if (!/^[A-Za-z0-9]+$/.test(param.slice(5))) return 'invalid alpn';
@@ -81,6 +81,10 @@ export function validateRecord(rec: RecordInput): string | null {
 			}
 			break;
 		}
+		case 'REFUSED':
+		case 'NXDOMAIN':
+			if (rec.value !== '') return 'value must be empty for this record type';
+			break;
 	}
 	return null;
 }

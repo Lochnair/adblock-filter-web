@@ -1,5 +1,8 @@
 <script lang="ts">
-	import { Modal, Button, Label, Input, Alert } from 'flowbite-svelte';
+	import * as Dialog from '$lib/components/ui/dialog';
+	import { Button } from '$lib/components/ui/button';
+	import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
 
 	let { open = $bindable(false), afterSubmit = $bindable(async () => {}) } = $props();
 
@@ -11,9 +14,7 @@
 
 	async function submit(event: SubmitEvent) {
 		event.preventDefault();
-		if (slugError) {
-			return;
-		}
+		if (slugError) return;
 		const res = await fetch('/api/lists', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
@@ -29,18 +30,28 @@
 	}
 </script>
 
-<Modal bind:open onclose={() => (error = '')}>
-	<form class="space-y-4" onsubmit={submit}>
-		<div>
-			<Label for="list-slug">List Slug</Label>
-			<Input id="list-slug" bind:value={slug} placeholder="new list slug" />
-		</div>
-		{#if displayError}
-			<Alert color="failure" class="mt-2">{displayError}</Alert>
-		{/if}
-		<div class="flex justify-end gap-2">
-			<Button color="gray" type="button" onclick={() => (open = false)}>Cancel</Button>
-			<Button type="submit" disabled={slugError}>Create List</Button>
-		</div>
-	</form>
-</Modal>
+<Dialog.Root
+	bind:open
+	onOpenChange={(v) => {
+		if (!v) error = '';
+	}}
+>
+	<Dialog.Content class="sm:max-w-md">
+		<Dialog.Header>
+			<Dialog.Title>Create Filter List</Dialog.Title>
+		</Dialog.Header>
+		<form class="space-y-4" onsubmit={submit}>
+			<div class="space-y-1.5">
+				<Label for="list-slug">List Slug</Label>
+				<Input id="list-slug" bind:value={slug} placeholder="my-list" />
+			</div>
+			{#if displayError}
+				<p class="text-destructive text-sm">{displayError}</p>
+			{/if}
+			<Dialog.Footer>
+				<Button variant="outline" type="button" onclick={() => (open = false)}>Cancel</Button>
+				<Button type="submit" disabled={slugError !== null}>Create List</Button>
+			</Dialog.Footer>
+		</form>
+	</Dialog.Content>
+</Dialog.Root>

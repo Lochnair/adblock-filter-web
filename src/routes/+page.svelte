@@ -1,23 +1,14 @@
 <script lang="ts">
-	import {
-		A,
-		Button,
-		P,
-		Table,
-		TableBody,
-		TableBodyCell,
-		TableBodyRow,
-		TableHead,
-		TableHeadCell,
-		Tabs,
-		TabItem
-	} from 'flowbite-svelte';
-	import { EditOutline, TrashBinOutline, CloseOutline, PlusOutline } from 'flowbite-svelte-icons';
+	import * as Tabs from '$lib/components/ui/tabs';
+	import * as Table from '$lib/components/ui/table';
+	import { Button } from '$lib/components/ui/button';
+	import { Pencil, Trash2, X, Plus } from 'lucide-svelte';
 	import RecordModal from '$lib/components/RecordModal.svelte';
 	import ListModal from '$lib/components/ListModal.svelte';
 	import type { DNSRecord } from '$lib/server/adblock';
 	import type { InferSelectModel } from 'drizzle-orm';
 	import type { filterLists } from '$lib/server/db/schema';
+
 	let { data } = $props<{
 		data: {
 			lists: InferSelectModel<typeof filterLists>[];
@@ -25,11 +16,12 @@
 			selectedList: string;
 		};
 	}>();
+
 	let lists = $state(data.lists);
 	let selectedList = $state(data.selectedList);
-	let recordsByList = $state<Record<string, DNSRecord[]>>({
-		[selectedList]: data.records
-	});
+	const initialRecords: Record<string, DNSRecord[]> = {};
+	initialRecords[data.selectedList] = data.records;
+	let recordsByList = $state<Record<string, DNSRecord[]>>(initialRecords);
 	let modalOpen = $state(false);
 	let listModalOpen = $state(false);
 	let editing: DNSRecord | null = $state(null);
@@ -40,6 +32,7 @@
 		error = '';
 		modalOpen = true;
 	}
+
 	function openEdit(record: DNSRecord) {
 		editing = record;
 		error = '';
@@ -91,75 +84,99 @@
 	}
 </script>
 
-<Tabs tabStyle="underline">
-	{#each lists as l (l.id)}
-		<TabItem open={selectedList === l.slug} onclick={() => changeTab(l.slug)}>
-			{#snippet titleSlot()}
-				<span class="flex items-center">
-					{l.slug}
-					<button
-						class="ms-2 rounded p-0.5 hover:bg-red-100"
-						aria-label="Delete list"
-						onclick={() => removeList(l.slug)}
-					>
-						<CloseOutline class="h-4 w-4 text-red-600" />
-					</button>
-				</span>
-			{/snippet}
-			<div class="space-y-4 p-4">
-				<div class="text-right">
-					<Button onclick={openCreate}>Add Record</Button>
-				</div>
-				<Table>
-					<TableHead>
-						<TableHeadCell>Hostname</TableHeadCell>
-						<TableHeadCell>Type</TableHeadCell>
-						<TableHeadCell>Value</TableHeadCell>
-						<TableHeadCell></TableHeadCell>
-					</TableHead>
-					<TableBody>
-						{#each recordsByList[l.slug] ?? [] as r (r.id)}
-							<TableBodyRow>
-								<TableBodyCell>{r.name}</TableBodyCell>
-								<TableBodyCell>{r.type}</TableBodyCell>
-								<TableBodyCell>{r.value}</TableBodyCell>
-								<TableBodyCell class="flex justify-end gap-2">
-									<Button aria-label="Edit" size="xs" onclick={() => openEdit(r)}>
-										<EditOutline class="h-4 w-4" />
-									</Button>
-									<Button
-										aria-label="Delete"
-										color="red"
-										size="xs"
-										onclick={() => removeRecord(r.id)}
-									>
-										<TrashBinOutline class="h-4 w-4" />
-									</Button>
-								</TableBodyCell>
-							</TableBodyRow>
-						{/each}
-					</TableBody>
-				</Table>
-				<P class="text-center">
-					<A class="text-blue-600 underline" href={`/filter/${l.slug}.txt`}>View Generated Filter</A
-					>
-				</P>
-			</div>
-		</TabItem>
-	{/each}
+<div class="mx-auto max-w-6xl p-4">
+	<Tabs.Root value={selectedList} onValueChange={changeTab}>
+		<div class="mb-4 flex items-center gap-2">
+			<Tabs.List class="flex-wrap gap-1 h-auto">
+				{#each lists as l (l.id)}
+					<Tabs.Trigger value={l.slug} class="gap-1">
+						{l.slug}
+						<button
+							class="hover:bg-destructive/20 ml-1 rounded p-0.5"
+							aria-label="Delete list"
+							onclick={(e) => {
+								e.stopPropagation();
+								removeList(l.slug);
+							}}
+						>
+							<X class="text-destructive h-3 w-3" />
+						</button>
+					</Tabs.Trigger>
+				{/each}
+			</Tabs.List>
+			<Button
+				variant="outline"
+				size="icon"
+				class="h-8 w-8 shrink-0"
+				aria-label="Create new list"
+				onclick={() => (listModalOpen = true)}
+			>
+				<Plus class="h-4 w-4" />
+			</Button>
+		</div>
 
-	<Button
-		class="p-2!"
-		size="xs"
-		pill={true}
-		outline={true}
-		color="green"
-		aria-label="Create new list"
-		onclick={() => (listModalOpen = true)}
-	>
-		<PlusOutline class="h-3 w-3" />
-	</Button>
-</Tabs>
+		{#each lists as l (l.id)}
+			<Tabs.Content value={l.slug}>
+				<div class="space-y-4">
+					<div class="flex justify-end">
+						<Button onclick={openCreate}>Add Record</Button>
+					</div>
+
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Hostname</Table.Head>
+								<Table.Head>Type</Table.Head>
+								<Table.Head>Value</Table.Head>
+								<Table.Head></Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each recordsByList[l.slug] ?? [] as r (r.id)}
+								<Table.Row>
+									<Table.Cell class="font-mono text-sm">{r.name}</Table.Cell>
+									<Table.Cell>
+										<span class="bg-muted rounded px-1.5 py-0.5 font-mono text-xs">{r.type}</span>
+									</Table.Cell>
+									<Table.Cell class="font-mono text-sm">{r.value || '—'}</Table.Cell>
+									<Table.Cell class="flex justify-end gap-1">
+										<Button
+											variant="ghost"
+											size="icon"
+											class="h-8 w-8"
+											aria-label="Edit"
+											onclick={() => openEdit(r)}
+										>
+											<Pencil class="h-4 w-4" />
+										</Button>
+										<Button
+											variant="ghost"
+											size="icon"
+											class="text-destructive hover:text-destructive h-8 w-8"
+											aria-label="Delete"
+											onclick={() => removeRecord(r.id)}
+										>
+											<Trash2 class="h-4 w-4" />
+										</Button>
+									</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+
+					<p class="text-muted-foreground text-center text-sm">
+						<a
+							href={`/filter/${l.slug}.txt`}
+							class="text-primary underline underline-offset-4 hover:no-underline"
+						>
+							View Generated Filter ({l.slug})
+						</a>
+					</p>
+				</div>
+			</Tabs.Content>
+		{/each}
+	</Tabs.Root>
+</div>
 
 <RecordModal
 	bind:open={modalOpen}

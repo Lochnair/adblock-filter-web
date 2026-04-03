@@ -4,6 +4,7 @@ import { dnsRecords, filterLists } from '$lib/server/db/schema';
 import type { InferSelectModel } from 'drizzle-orm';
 import { eq, and, ne } from 'drizzle-orm';
 import { validateRecord } from '$lib/validation';
+import type { RecordType } from '$lib/record-types';
 
 type RecordRow = InferSelectModel<typeof dnsRecords>;
 
@@ -27,7 +28,7 @@ export async function POST({ request, platform }) {
 	const data = (await request.json()) as Partial<RecordRow> & { list?: string };
 	const error = validateRecord({
 		name: data.name as string,
-		type: data.type as string,
+		type: data.type as RecordType,
 		value: data.value as string
 	});
 	if (error) {
@@ -55,9 +56,9 @@ export async function POST({ request, platform }) {
 		return new Response('duplicate record', { status: 409 });
 	}
 	await db.insert(dnsRecords).values({
-		name: data.name,
-		type: data.type,
-		value: data.value,
+		name: data.name as string,
+		type: data.type as RecordType,
+		value: data.value as string,
 		listId
 	});
 	return new Response(null, { status: 201 });
@@ -83,7 +84,7 @@ export async function PUT({ request, platform }) {
 	}
 	const error = validateRecord({
 		name: data.name as string,
-		type: data.type as string,
+		type: data.type as RecordType,
 		value: data.value as string
 	});
 	if (error) {
