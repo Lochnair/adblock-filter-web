@@ -5,7 +5,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import * as Select from '$lib/components/ui/select';
 	import type { DNSRecord } from '$lib/server/adblock';
-	import { RECORD_TYPES, type RecordType } from '$lib/record-types';
+	import { RECORD_TYPES, DNS_RR_TYPES, type RecordType } from '$lib/record-types';
 	import { validateRecord } from '$lib/validation';
 
 	let {
@@ -13,11 +13,12 @@
 		record = $bindable<DNSRecord | null>(null),
 		error = $bindable(''),
 		list = $bindable('default'),
+		initialName = '',
 		afterSubmit = $bindable(async () => {})
 	} = $props();
 
 	// Simple types use a single value string
-	let name = $state(record?.name ?? '');
+	let name = $state(record?.name ?? initialName);
 	let type = $state<RecordType>(record?.type ?? 'A');
 	let value = $state(record?.value ?? '');
 
@@ -26,10 +27,23 @@
 	let srvFields = $state({ priority: '', weight: '', port: '', target: '' });
 	let httpsFields = $state({ priority: '', target: '', alpn: '', port: '', ipv4hint: '' });
 
+	// NODATA toggle — when true, value is empty (suppress this query type with NODATA)
+	let nodata = $state(false);
+
+	// Scope for NXDOMAIN/REFUSED — empty = all queries, type name = specific query type only
+	let scope = $state('');
+
 	$effect(() => {
-		name = record?.name ?? '';
+		name = record?.name ?? initialName;
 		type = record?.type ?? 'A';
 		value = record?.value ?? '';
+
+		// Restore NODATA state: RR type record with an empty stored value
+		const isRR = DNS_RR_TYPES.includes(type as (typeof DNS_RR_TYPES)[number]);
+		nodata = isRR && record !== null && (record?.value ?? '') === '';
+
+		// Restore scope for NXDOMAIN/REFUSED
+		scope = type === 'NXDOMAIN' || type === 'REFUSED' ? (record?.value ?? '') : '';
 
 		// Parse existing value into structured fields for editing
 		const v = record?.value ?? '';
@@ -55,13 +69,19 @@
 		};
 	});
 
-	// Clear value when switching to no-value types
-	$effect(() => {
-		if (type === 'REFUSED' || type === 'NXDOMAIN') value = '';
-	});
+	function resetFields() {
+		nodata = false;
+		scope = '';
+		value = '';
+		mxFields = { priority: '', exchange: '' };
+		srvFields = { priority: '', weight: '', port: '', target: '' };
+		httpsFields = { priority: '', target: '', alpn: '', port: '', ipv4hint: '' };
+	}
 
 	// Assemble the value string from structured or simple fields
 	let assembledValue = $derived.by(() => {
+		if (nodata) return '';
+		if (type === 'NXDOMAIN' || type === 'REFUSED') return scope;
 		switch (type) {
 			case 'MX':
 				return `${mxFields.priority} ${mxFields.exchange}`.trim();
@@ -87,6 +107,8 @@
 		PTR: { placeholder: 'host.example.com', hint: 'Pointer target hostname' },
 		TXT: { placeholder: 'v=spf1 include:example.com ~all', hint: 'Arbitrary text content' }
 	};
+
+	const isRRType = $derived(DNS_RR_TYPES.includes(type as (typeof DNS_RR_TYPES)[number]));
 
 	let clientError = $derived(validateRecord({ name, type, value: assembledValue }));
 	let displayError = $derived(clientError || error || null);
@@ -136,7 +158,7 @@
 
 			<div class="space-y-1.5">
 				<Label for="record-type">Type</Label>
-				<Select.Root bind:value={type}>
+				<Select.Root bind:value={type} onValueChange={resetFields}>
 					<Select.Trigger id="record-type">
 						{type}
 					</Select.Trigger>
@@ -148,91 +170,116 @@
 				</Select.Root>
 			</div>
 
-			<!-- MX: priority + exchange -->
-			{#if type === 'MX'}
-				<div class="grid grid-cols-[6rem_1fr] gap-3">
-					<div class="space-y-1.5">
-						<Label for="mx-priority">Priority</Label>
-						<Input id="mx-priority" bind:value={mxFields.priority} placeholder="10" inputmode="numeric" />
-					</div>
-					<div class="space-y-1.5">
-						<Label for="mx-exchange">Exchange (mail server)</Label>
-						<Input id="mx-exchange" bind:value={mxFields.exchange} placeholder="mail.example.com" />
-					</div>
-				</div>
+			<!-- NODATA toggle for real RR types -->
+			{#if isRRType}
+				<label class="flex cursor-pointer items-center gap-2">
+					<input type="checkbox" bind:checked={nodata} class="h-4 w-4 rounded border accent-primary" />
+					<span class="text-sm">No record for this type <span class="text-muted-foreground">(return NODATA)</span></span>
+				</label>
+			{/if}
 
-			<!-- SRV: priority + weight + port + target -->
-			{:else if type === 'SRV'}
-				<div class="grid grid-cols-[5rem_5rem_5rem_1fr] gap-3">
-					<div class="space-y-1.5">
-						<Label for="srv-priority">Priority</Label>
-						<Input id="srv-priority" bind:value={srvFields.priority} placeholder="10" inputmode="numeric" />
-					</div>
-					<div class="space-y-1.5">
-						<Label for="srv-weight">Weight</Label>
-						<Input id="srv-weight" bind:value={srvFields.weight} placeholder="20" inputmode="numeric" />
-					</div>
-					<div class="space-y-1.5">
-						<Label for="srv-port">Port</Label>
-						<Input id="srv-port" bind:value={srvFields.port} placeholder="443" inputmode="numeric" />
-					</div>
-					<div class="space-y-1.5">
-						<Label for="srv-target">Target</Label>
-						<Input id="srv-target" bind:value={srvFields.target} placeholder="target.example.com" />
-					</div>
-				</div>
-
-			<!-- HTTPS / SVCB: priority + target + optional params -->
-			{:else if type === 'HTTPS' || type === 'SVCB'}
-				<div class="grid grid-cols-[6rem_1fr] gap-3">
-					<div class="space-y-1.5">
-						<Label for="https-priority">Priority</Label>
-						<Input id="https-priority" bind:value={httpsFields.priority} placeholder="1" inputmode="numeric" />
-					</div>
-					<div class="space-y-1.5">
-						<Label for="https-target">Target</Label>
-						<Input id="https-target" bind:value={httpsFields.target} placeholder=". (or target.example.com)" />
-					</div>
-				</div>
-				<div class="space-y-2">
-					<p class="text-muted-foreground text-xs font-medium uppercase tracking-wide">Optional parameters</p>
-					<div class="grid grid-cols-3 gap-3">
+			{#if !nodata}
+				<!-- MX: priority + exchange -->
+				{#if type === 'MX'}
+					<div class="grid grid-cols-[6rem_1fr] gap-3">
 						<div class="space-y-1.5">
-							<Label for="https-alpn">ALPN</Label>
-							<Input id="https-alpn" bind:value={httpsFields.alpn} placeholder="h2" />
+							<Label for="mx-priority">Priority</Label>
+							<Input id="mx-priority" bind:value={mxFields.priority} placeholder="10" inputmode="numeric" />
 						</div>
 						<div class="space-y-1.5">
-							<Label for="https-port">Port</Label>
-							<Input id="https-port" bind:value={httpsFields.port} placeholder="443" inputmode="numeric" />
-						</div>
-						<div class="space-y-1.5">
-							<Label for="https-ipv4hint">IPv4 hint</Label>
-							<Input id="https-ipv4hint" bind:value={httpsFields.ipv4hint} placeholder="192.0.2.1" />
+							<Label for="mx-exchange">Exchange (mail server)</Label>
+							<Input id="mx-exchange" bind:value={mxFields.exchange} placeholder="mail.example.com" />
 						</div>
 					</div>
-				</div>
 
-			<!-- No-value types -->
-			{:else if type === 'REFUSED' || type === 'NXDOMAIN'}
-				<input type="hidden" name="value" value="" />
-				<p class="text-muted-foreground text-sm">
-					This record type responds with <strong>{type}</strong> and requires no value.
-				</p>
+				<!-- SRV: priority + weight + port + target -->
+				{:else if type === 'SRV'}
+					<div class="grid grid-cols-[5rem_5rem_5rem_1fr] gap-3">
+						<div class="space-y-1.5">
+							<Label for="srv-priority">Priority</Label>
+							<Input id="srv-priority" bind:value={srvFields.priority} placeholder="10" inputmode="numeric" />
+						</div>
+						<div class="space-y-1.5">
+							<Label for="srv-weight">Weight</Label>
+							<Input id="srv-weight" bind:value={srvFields.weight} placeholder="20" inputmode="numeric" />
+						</div>
+						<div class="space-y-1.5">
+							<Label for="srv-port">Port</Label>
+							<Input id="srv-port" bind:value={srvFields.port} placeholder="443" inputmode="numeric" />
+						</div>
+						<div class="space-y-1.5">
+							<Label for="srv-target">Target</Label>
+							<Input id="srv-target" bind:value={srvFields.target} placeholder="target.example.com" />
+						</div>
+					</div>
 
-			<!-- Simple single-value types (A, AAAA, CNAME, PTR, TXT) -->
-			{:else}
-				<div class="space-y-1.5">
-					<Label for="record-value">Value</Label>
-					<Input
-						id="record-value"
-						bind:value
-						name="value"
-						placeholder={VALUE_META[type]?.placeholder ?? ''}
-					/>
-					{#if VALUE_META[type]?.hint}
-						<p class="text-muted-foreground text-xs">{VALUE_META[type]?.hint}</p>
-					{/if}
-				</div>
+				<!-- HTTPS / SVCB: priority + target + optional params -->
+				{:else if type === 'HTTPS' || type === 'SVCB'}
+					<div class="grid grid-cols-[6rem_1fr] gap-3">
+						<div class="space-y-1.5">
+							<Label for="https-priority">Priority</Label>
+							<Input id="https-priority" bind:value={httpsFields.priority} placeholder="1" inputmode="numeric" />
+						</div>
+						<div class="space-y-1.5">
+							<Label for="https-target">Target</Label>
+							<Input id="https-target" bind:value={httpsFields.target} placeholder=". (or target.example.com)" />
+						</div>
+					</div>
+					<div class="space-y-2">
+						<p class="text-muted-foreground text-xs font-medium uppercase tracking-wide">Optional parameters</p>
+						<div class="grid grid-cols-3 gap-3">
+							<div class="space-y-1.5">
+								<Label for="https-alpn">ALPN</Label>
+								<Input id="https-alpn" bind:value={httpsFields.alpn} placeholder="h2" />
+							</div>
+							<div class="space-y-1.5">
+								<Label for="https-port">Port</Label>
+								<Input id="https-port" bind:value={httpsFields.port} placeholder="443" inputmode="numeric" />
+							</div>
+							<div class="space-y-1.5">
+								<Label for="https-ipv4hint">IPv4 hint</Label>
+								<Input id="https-ipv4hint" bind:value={httpsFields.ipv4hint} placeholder="192.0.2.1" />
+							</div>
+						</div>
+					</div>
+
+				<!-- NXDOMAIN / REFUSED: scope select -->
+				{:else if type === 'REFUSED' || type === 'NXDOMAIN'}
+					<div class="space-y-1.5">
+						<Label for="record-scope">Respond with {type} for</Label>
+						<Select.Root bind:value={scope}>
+							<Select.Trigger id="record-scope">
+								{scope === '' ? 'All queries' : scope}
+							</Select.Trigger>
+							<Select.Content>
+								<Select.Item value="" label="All queries" />
+								{#each DNS_RR_TYPES as rt (rt)}
+									<Select.Item value={rt} label={rt} />
+								{/each}
+							</Select.Content>
+						</Select.Root>
+						{#if scope === ''}
+							<p class="text-muted-foreground text-xs">Blocks all DNS queries for this hostname.</p>
+						{:else}
+							<p class="text-muted-foreground text-xs">Only affects {scope} queries; other types pass through.</p>
+						{/if}
+					</div>
+
+				<!-- Simple single-value types (A, AAAA, CNAME, PTR, TXT) -->
+				{:else}
+					<div class="space-y-1.5">
+						<Label for="record-value">Value</Label>
+						<Input
+							id="record-value"
+							bind:value
+							name="value"
+							placeholder={VALUE_META[type]?.placeholder ?? ''}
+						/>
+						{#if VALUE_META[type]?.hint}
+							<p class="text-muted-foreground text-xs">{VALUE_META[type]?.hint}</p>
+						{/if}
+					</div>
+				{/if}
 			{/if}
 
 			{#if displayError}
