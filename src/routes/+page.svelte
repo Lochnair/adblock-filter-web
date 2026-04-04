@@ -275,12 +275,12 @@
 							</Table.Body>
 						</Table.Root>
 
-						<p class="text-muted-foreground text-center text-sm">
+						<p class="text-muted-foreground text-sm">
 							<a
 								href={`/filter/${l.slug}.txt`}
 								class="text-primary underline underline-offset-4 hover:no-underline"
 							>
-								View Generated Filter ({l.slug})
+								View generated filter for <span class="font-mono">{l.slug}</span>
 							</a>
 						</p>
 					</div>
@@ -427,12 +427,12 @@
 			</Table.Root>
 		{/if}
 
-		<div class="border-border rounded-lg border p-4 space-y-1.5">
+		<div class="bg-muted/50 border-border rounded-lg border-l-4 border border-l-primary/30 px-4 py-3.5 space-y-1">
 			<p class="text-sm font-medium">Cloudflare Access setup</p>
 			<p class="text-muted-foreground text-sm">
 				Add a <strong>Bypass</strong> policy in your Cloudflare Access application for the path
-				<code class="bg-muted rounded px-1 text-xs">/filter/*</code> so AdGuard Home can reach
-				filter URLs without browser-based auth. The <code class="bg-muted rounded px-1 text-xs">?token=</code> check above
+				<code class="bg-background rounded px-1 text-xs">/filter/*</code> so AdGuard Home can reach
+				filter URLs without browser-based auth. The <code class="bg-background rounded px-1 text-xs">?token=</code> check above
 				protects those routes instead.
 			</p>
 		</div>
