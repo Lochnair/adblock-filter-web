@@ -247,7 +247,9 @@
 												>{r.type}</span
 											>
 										</Table.Cell>
-										<Table.Cell class="font-mono text-sm">{r.value || '—'}</Table.Cell>
+										<Table.Cell class="max-w-xs font-mono text-sm">
+											<span class="block truncate">{r.value || '—'}</span>
+										</Table.Cell>
 										<Table.Cell class="flex justify-end gap-1">
 											<Button
 												variant="ghost"
@@ -315,8 +317,8 @@
 						<Table.Head>Site</Table.Head>
 						<Table.Head>Description</Table.Head>
 						<Table.Head>Assigned Lists</Table.Head>
-						<Table.Head>Filter URL</Table.Head>
-						<Table.Head></Table.Head>
+						<Table.Head class="w-36">Filter URL</Table.Head>
+						<Table.Head class="w-20"></Table.Head>
 					</Table.Row>
 				</Table.Header>
 				<Table.Body>
@@ -335,13 +337,13 @@
 									</div>
 								{/if}
 							</Table.Cell>
-							<Table.Cell>
+							<Table.Cell class="max-w-[180px]">
 								<a
 									href="/filter/site/{site.slug}.txt"
 									target="_blank"
-									class="text-primary font-mono text-xs underline underline-offset-2 hover:no-underline"
+									class="text-primary flex items-center gap-1 font-mono text-xs underline underline-offset-2 hover:no-underline"
 								>
-									<Globe class="mr-1 inline h-3 w-3" />/filter/site/{site.slug}.txt
+									<Globe class="h-3 w-3 shrink-0" /><span class="truncate">/filter/site/{site.slug}.txt</span>
 								</a>
 							</Table.Cell>
 							<Table.Cell class="flex justify-end gap-1">
