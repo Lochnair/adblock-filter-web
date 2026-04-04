@@ -1,5 +1,5 @@
 import isValidDomain from 'is-valid-domain';
-import * as ipaddr from 'ipaddr.js';
+import ipaddr from 'ipaddr.js';
 import { RECORD_TYPES, type RecordType } from '$lib/record-types';
 
 export interface RecordInput {
