@@ -295,7 +295,7 @@
 	<div class="mx-auto max-w-6xl p-4 space-y-4">
 		<div class="flex items-center justify-between">
 			<div>
-				<h2 class="text-base font-semibold">Sites</h2>
+				<h2 class="text-lg font-semibold">Sites</h2>
 				<p class="text-muted-foreground text-sm">
 					Each site merges its assigned lists into one filter URL.
 				</p>
@@ -379,7 +379,7 @@
 	<div class="mx-auto max-w-6xl p-4 space-y-4">
 		<div class="flex items-center justify-between">
 			<div>
-				<h2 class="text-base font-semibold">API Keys</h2>
+				<h2 class="text-lg font-semibold">API Keys</h2>
 				<p class="text-muted-foreground text-sm">
 					Keys authenticate AdGuard Home requests to filter URLs via <code class="bg-muted rounded px-1 text-xs">?token=&lt;key&gt;</code>.
 				</p>
