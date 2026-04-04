@@ -221,17 +221,21 @@
 			{#each lists as l (l.id)}
 				<Tabs.Content value={l.slug}>
 					<div class="space-y-4">
-						<div class="flex justify-end">
+						<div class="flex items-center justify-between">
+							<p class="text-muted-foreground text-sm">
+								{(recordsByList[l.slug] ?? []).length}
+								{(recordsByList[l.slug] ?? []).length === 1 ? 'record' : 'records'}
+							</p>
 							<Button onclick={openCreate}>Add Record</Button>
 						</div>
 
 						<Table.Root>
 							<Table.Header>
 								<Table.Row>
-									<Table.Head>Hostname</Table.Head>
-									<Table.Head>Type</Table.Head>
+									<Table.Head class="w-[38%]">Hostname</Table.Head>
+									<Table.Head class="w-24">Type</Table.Head>
 									<Table.Head>Value</Table.Head>
-									<Table.Head></Table.Head>
+									<Table.Head class="w-20"></Table.Head>
 								</Table.Row>
 							</Table.Header>
 							<Table.Body>
