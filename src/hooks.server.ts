@@ -48,7 +48,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 
 		// Update last_used_at — fire and forget
-		event.platform?.context?.waitUntil(
+		event.platform?.ctx?.waitUntil(
 			db.update(apiKeys).set({ lastUsedAt: Date.now() }).where(eq(apiKeys.id, key.id)).run()
 		);
 	}
