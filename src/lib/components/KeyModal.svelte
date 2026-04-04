@@ -34,7 +34,7 @@
 			error = await res.text();
 			return;
 		}
-		const data = await res.json();
+		const data = (await res.json()) as { key: string };
 		createdKey = data.key;
 		await afterSubmit();
 	}
