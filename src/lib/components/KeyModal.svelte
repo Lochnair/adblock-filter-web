@@ -5,10 +5,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Copy, Check } from 'lucide-svelte';
 
-	let {
-		open = $bindable(false),
-		afterSubmit = $bindable(async () => {})
-	} = $props();
+	let { open = $bindable(false), afterSubmit = $bindable(async () => {}) } = $props();
 
 	let name = $state('');
 	let error = $state('');
@@ -88,8 +85,16 @@
 			</Dialog.Header>
 			<div class="space-y-4">
 				<div class="bg-muted flex items-center gap-2 rounded-md px-3 py-2">
-					<code class="text-foreground min-w-0 flex-1 break-all font-mono text-xs">{createdKey}</code>
-					<Button variant="ghost" size="icon" class="h-8 w-8 shrink-0" onclick={copy} aria-label="Copy key">
+					<code class="text-foreground min-w-0 flex-1 font-mono text-xs break-all"
+						>{createdKey}</code
+					>
+					<Button
+						variant="ghost"
+						size="icon"
+						class="h-8 w-8 shrink-0"
+						onclick={copy}
+						aria-label="Copy key"
+					>
 						{#if copied}
 							<Check class="h-4 w-4 text-green-500" />
 						{:else}

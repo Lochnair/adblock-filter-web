@@ -5,7 +5,9 @@
 
 	let {
 		open = $bindable(false),
-		site = $bindable<{ id: number; slug: string; description: string; lists: string[] } | null>(null),
+		site = $bindable<{ id: number; slug: string; description: string; lists: string[] } | null>(
+			null
+		),
 		availableLists = [] as string[],
 		afterSubmit = $bindable(async () => {})
 	} = $props();
@@ -53,14 +55,16 @@
 			{:else}
 				<div class="space-y-2">
 					{#each availableLists as listSlug (listSlug)}
-						<label class="flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2 transition-colors hover:bg-muted/50">
+						<label
+							class="hover:bg-muted/50 flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2 transition-colors"
+						>
 							<input
 								type="checkbox"
-								class="h-4 w-4 rounded border accent-primary"
+								class="accent-primary h-4 w-4 rounded border"
 								checked={selected.includes(listSlug)}
 								onchange={() => toggle(listSlug)}
 							/>
-							<span class="text-sm font-mono">{listSlug}</span>
+							<span class="font-mono text-sm">{listSlug}</span>
 						</label>
 					{/each}
 				</div>
@@ -80,7 +84,8 @@
 					href="/filter/site/{site?.slug}.txt"
 					target="_blank"
 					class="text-primary font-mono underline underline-offset-2"
-				>/filter/site/{site?.slug}.txt</a>
+					>/filter/site/{site?.slug}.txt</a
+				>
 			</p>
 		</div>
 

@@ -23,7 +23,12 @@ function generateKey(): string {
 export async function GET({ platform }) {
 	const db = getDB(platform);
 	const rows = await db
-		.select({ id: apiKeys.id, name: apiKeys.name, createdAt: apiKeys.createdAt, lastUsedAt: apiKeys.lastUsedAt })
+		.select({
+			id: apiKeys.id,
+			name: apiKeys.name,
+			createdAt: apiKeys.createdAt,
+			lastUsedAt: apiKeys.lastUsedAt
+		})
 		.from(apiKeys)
 		.all();
 	return json(rows);

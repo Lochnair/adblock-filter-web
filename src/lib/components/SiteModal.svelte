@@ -4,10 +4,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 
-	let {
-		open = $bindable(false),
-		afterSubmit = $bindable(async () => {})
-	} = $props();
+	let { open = $bindable(false), afterSubmit = $bindable(async () => {}) } = $props();
 
 	let slug = $state('');
 	let description = $state('');
@@ -37,7 +34,12 @@
 	}
 </script>
 
-<Dialog.Root bind:open onOpenChange={(v) => { if (!v) error = ''; }}>
+<Dialog.Root
+	bind:open
+	onOpenChange={(v) => {
+		if (!v) error = '';
+	}}
+>
 	<Dialog.Content class="sm:max-w-md">
 		<Dialog.Header>
 			<Dialog.Title>Create Site</Dialog.Title>
@@ -49,10 +51,14 @@
 			<div class="space-y-1.5">
 				<Label for="site-slug">Site Slug</Label>
 				<Input id="site-slug" bind:value={slug} placeholder="amsterdam" />
-				<p class="text-muted-foreground text-xs">Used in the filter URL: /filter/site/amsterdam.txt</p>
+				<p class="text-muted-foreground text-xs">
+					Used in the filter URL: /filter/site/amsterdam.txt
+				</p>
 			</div>
 			<div class="space-y-1.5">
-				<Label for="site-desc">Description <span class="text-muted-foreground">(optional)</span></Label>
+				<Label for="site-desc"
+					>Description <span class="text-muted-foreground">(optional)</span></Label
+				>
 				<Input id="site-desc" bind:value={description} placeholder="Dutch datacenter" />
 			</div>
 			{#if displayError}

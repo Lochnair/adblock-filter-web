@@ -173,8 +173,15 @@
 			<!-- NODATA toggle for real RR types -->
 			{#if isRRType}
 				<label class="flex cursor-pointer items-center gap-2">
-					<input type="checkbox" bind:checked={nodata} class="h-4 w-4 rounded border accent-primary" />
-					<span class="text-sm">No record for this type <span class="text-muted-foreground">(return NODATA)</span></span>
+					<input
+						type="checkbox"
+						bind:checked={nodata}
+						class="accent-primary h-4 w-4 rounded border"
+					/>
+					<span class="text-sm"
+						>No record for this type <span class="text-muted-foreground">(return NODATA)</span
+						></span
+					>
 				</label>
 			{/if}
 
@@ -184,49 +191,88 @@
 					<div class="grid grid-cols-[6rem_1fr] gap-3">
 						<div class="space-y-1.5">
 							<Label for="mx-priority">Priority</Label>
-							<Input id="mx-priority" bind:value={mxFields.priority} placeholder="10" inputmode="numeric" />
+							<Input
+								id="mx-priority"
+								bind:value={mxFields.priority}
+								placeholder="10"
+								inputmode="numeric"
+							/>
 						</div>
 						<div class="space-y-1.5">
 							<Label for="mx-exchange">Exchange (mail server)</Label>
-							<Input id="mx-exchange" bind:value={mxFields.exchange} placeholder="mail.example.com" />
+							<Input
+								id="mx-exchange"
+								bind:value={mxFields.exchange}
+								placeholder="mail.example.com"
+							/>
 						</div>
 					</div>
 
-				<!-- SRV: priority + weight + port + target -->
+					<!-- SRV: priority + weight + port + target -->
 				{:else if type === 'SRV'}
 					<div class="grid grid-cols-[5rem_5rem_5rem_1fr] gap-3">
 						<div class="space-y-1.5">
 							<Label for="srv-priority">Priority</Label>
-							<Input id="srv-priority" bind:value={srvFields.priority} placeholder="10" inputmode="numeric" />
+							<Input
+								id="srv-priority"
+								bind:value={srvFields.priority}
+								placeholder="10"
+								inputmode="numeric"
+							/>
 						</div>
 						<div class="space-y-1.5">
 							<Label for="srv-weight">Weight</Label>
-							<Input id="srv-weight" bind:value={srvFields.weight} placeholder="20" inputmode="numeric" />
+							<Input
+								id="srv-weight"
+								bind:value={srvFields.weight}
+								placeholder="20"
+								inputmode="numeric"
+							/>
 						</div>
 						<div class="space-y-1.5">
 							<Label for="srv-port">Port</Label>
-							<Input id="srv-port" bind:value={srvFields.port} placeholder="443" inputmode="numeric" />
+							<Input
+								id="srv-port"
+								bind:value={srvFields.port}
+								placeholder="443"
+								inputmode="numeric"
+							/>
 						</div>
 						<div class="space-y-1.5">
 							<Label for="srv-target">Target</Label>
-							<Input id="srv-target" bind:value={srvFields.target} placeholder="target.example.com" />
+							<Input
+								id="srv-target"
+								bind:value={srvFields.target}
+								placeholder="target.example.com"
+							/>
 						</div>
 					</div>
 
-				<!-- HTTPS / SVCB: priority + target + optional params -->
+					<!-- HTTPS / SVCB: priority + target + optional params -->
 				{:else if type === 'HTTPS' || type === 'SVCB'}
 					<div class="grid grid-cols-[6rem_1fr] gap-3">
 						<div class="space-y-1.5">
 							<Label for="https-priority">Priority</Label>
-							<Input id="https-priority" bind:value={httpsFields.priority} placeholder="1" inputmode="numeric" />
+							<Input
+								id="https-priority"
+								bind:value={httpsFields.priority}
+								placeholder="1"
+								inputmode="numeric"
+							/>
 						</div>
 						<div class="space-y-1.5">
 							<Label for="https-target">Target</Label>
-							<Input id="https-target" bind:value={httpsFields.target} placeholder=". (or target.example.com)" />
+							<Input
+								id="https-target"
+								bind:value={httpsFields.target}
+								placeholder=". (or target.example.com)"
+							/>
 						</div>
 					</div>
 					<div class="space-y-2">
-						<p class="text-muted-foreground text-xs font-medium uppercase tracking-wide">Optional parameters</p>
+						<p class="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+							Optional parameters
+						</p>
 						<div class="grid grid-cols-3 gap-3">
 							<div class="space-y-1.5">
 								<Label for="https-alpn">ALPN</Label>
@@ -234,16 +280,25 @@
 							</div>
 							<div class="space-y-1.5">
 								<Label for="https-port">Port</Label>
-								<Input id="https-port" bind:value={httpsFields.port} placeholder="443" inputmode="numeric" />
+								<Input
+									id="https-port"
+									bind:value={httpsFields.port}
+									placeholder="443"
+									inputmode="numeric"
+								/>
 							</div>
 							<div class="space-y-1.5">
 								<Label for="https-ipv4hint">IPv4 hint</Label>
-								<Input id="https-ipv4hint" bind:value={httpsFields.ipv4hint} placeholder="192.0.2.1" />
+								<Input
+									id="https-ipv4hint"
+									bind:value={httpsFields.ipv4hint}
+									placeholder="192.0.2.1"
+								/>
 							</div>
 						</div>
 					</div>
 
-				<!-- NXDOMAIN / REFUSED: scope select -->
+					<!-- NXDOMAIN / REFUSED: scope select -->
 				{:else if type === 'REFUSED' || type === 'NXDOMAIN'}
 					<div class="space-y-1.5">
 						<Label for="record-scope">Respond with {type} for</Label>
@@ -261,11 +316,13 @@
 						{#if scope === ''}
 							<p class="text-muted-foreground text-xs">Blocks all DNS queries for this hostname.</p>
 						{:else}
-							<p class="text-muted-foreground text-xs">Only affects {scope} queries; other types pass through.</p>
+							<p class="text-muted-foreground text-xs">
+								Only affects {scope} queries; other types pass through.
+							</p>
 						{/if}
 					</div>
 
-				<!-- Simple single-value types (A, AAAA, CNAME, PTR, TXT) -->
+					<!-- Simple single-value types (A, AAAA, CNAME, PTR, TXT) -->
 				{:else}
 					<div class="space-y-1.5">
 						<Label for="record-value">Value</Label>

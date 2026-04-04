@@ -38,9 +38,7 @@ export async function POST({ request, platform }) {
 	if (existing) {
 		return new Response('duplicate slug', { status: 409 });
 	}
-	await db
-		.insert(sites)
-		.values({ slug: data.slug, description: data.description ?? '' });
+	await db.insert(sites).values({ slug: data.slug, description: data.description ?? '' });
 	return new Response(null, { status: 201 });
 }
 

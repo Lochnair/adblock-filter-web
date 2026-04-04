@@ -185,7 +185,7 @@
 	<div class="border-border mb-6 flex gap-1 border-b">
 		<button
 			class="px-4 py-2 text-sm font-medium transition-colors {section === 'lists'
-				? 'border-b-2 border-primary text-foreground -mb-px'
+				? 'border-primary text-foreground -mb-px border-b-2'
 				: 'text-muted-foreground hover:text-foreground'}"
 			onclick={() => (section = 'lists')}
 		>
@@ -193,24 +193,28 @@
 		</button>
 		<button
 			class="px-4 py-2 text-sm font-medium transition-colors {section === 'sites'
-				? 'border-b-2 border-primary text-foreground -mb-px'
+				? 'border-primary text-foreground -mb-px border-b-2'
 				: 'text-muted-foreground hover:text-foreground'}"
 			onclick={() => (section = 'sites')}
 		>
 			Sites
 			{#if sites.length > 0}
-				<span class="bg-muted text-muted-foreground ml-1.5 rounded-full px-1.5 py-0.5 text-xs">{sites.length}</span>
+				<span class="bg-muted text-muted-foreground ml-1.5 rounded-full px-1.5 py-0.5 text-xs"
+					>{sites.length}</span
+				>
 			{/if}
 		</button>
 		<button
 			class="px-4 py-2 text-sm font-medium transition-colors {section === 'keys'
-				? 'border-b-2 border-primary text-foreground -mb-px'
+				? 'border-primary text-foreground -mb-px border-b-2'
 				: 'text-muted-foreground hover:text-foreground'}"
 			onclick={() => (section = 'keys')}
 		>
 			API Keys
 			{#if keys.length > 0}
-				<span class="bg-muted text-muted-foreground ml-1.5 rounded-full px-1.5 py-0.5 text-xs">{keys.length}</span>
+				<span class="bg-muted text-muted-foreground ml-1.5 rounded-full px-1.5 py-0.5 text-xs"
+					>{keys.length}</span
+				>
 			{/if}
 		</button>
 	</div>
@@ -226,7 +230,7 @@
 						<Tabs.Trigger value={l.slug} class="gap-1">
 							{l.slug}
 							<button
-								class="ml-1 rounded p-0.5 hover:bg-destructive/20"
+								class="hover:bg-destructive/20 ml-1 rounded p-0.5"
 								aria-label="Delete list"
 								onclick={(e) => {
 									e.stopPropagation();
@@ -300,13 +304,15 @@
 													class="rounded px-1.5 py-0.5 font-mono text-xs {r.type === 'NXDOMAIN' ||
 													r.type === 'REFUSED'
 														? 'bg-destructive/10 text-destructive'
-														: 'bg-muted'}"
-												>{r.type}</span>
+														: 'bg-muted'}">{r.type}</span
+												>
 											</Table.Cell>
 											<Table.Cell class="max-w-xs">
 												{#if r.type === 'NXDOMAIN' || r.type === 'REFUSED'}
 													{#if r.value}
-														<span class="text-muted-foreground font-mono text-xs">{r.value} only</span>
+														<span class="text-muted-foreground font-mono text-xs"
+															>{r.value} only</span
+														>
 													{:else}
 														<span class="text-destructive text-xs">all queries</span>
 													{/if}
@@ -369,7 +375,7 @@
 
 <!-- ─────────────────────── SITES SECTION ─────────────────────── -->
 {#if section === 'sites'}
-	<div class="mx-auto max-w-6xl p-4 space-y-4">
+	<div class="mx-auto max-w-6xl space-y-4 p-4">
 		<div class="flex items-center justify-between">
 			<div>
 				<h2 class="text-lg font-semibold">Sites</h2>
@@ -384,7 +390,9 @@
 		</div>
 
 		{#if sites.length === 0}
-			<div class="border-border text-muted-foreground rounded-lg border border-dashed py-12 text-center text-sm">
+			<div
+				class="border-border text-muted-foreground rounded-lg border border-dashed py-12 text-center text-sm"
+			>
 				No sites yet. Create a site and assign filter lists to it.
 			</div>
 		{:else}
@@ -402,7 +410,9 @@
 					{#each sites as site (site.id)}
 						<Table.Row>
 							<Table.Cell class="font-mono text-sm font-medium">{site.slug}</Table.Cell>
-							<Table.Cell class="text-muted-foreground text-sm">{site.description || '—'}</Table.Cell>
+							<Table.Cell class="text-muted-foreground text-sm"
+								>{site.description || '—'}</Table.Cell
+							>
 							<Table.Cell>
 								{#if site.lists.length === 0}
 									<span class="text-muted-foreground text-xs">none</span>
@@ -420,7 +430,9 @@
 									target="_blank"
 									class="text-primary flex items-center gap-1 font-mono text-xs underline underline-offset-2 hover:no-underline"
 								>
-									<Globe class="h-3 w-3 shrink-0" /><span class="truncate">/filter/site/{site.slug}.txt</span>
+									<Globe class="h-3 w-3 shrink-0" /><span class="truncate"
+										>/filter/site/{site.slug}.txt</span
+									>
 								</a>
 							</Table.Cell>
 							<Table.Cell class="flex justify-end gap-1">
@@ -453,12 +465,14 @@
 
 <!-- ─────────────────────── KEYS SECTION ─────────────────────── -->
 {#if section === 'keys'}
-	<div class="mx-auto max-w-6xl p-4 space-y-4">
+	<div class="mx-auto max-w-6xl space-y-4 p-4">
 		<div class="flex items-center justify-between">
 			<div>
 				<h2 class="text-lg font-semibold">API Keys</h2>
 				<p class="text-muted-foreground text-sm">
-					Keys authenticate AdGuard Home requests to filter URLs via <code class="bg-muted rounded px-1 text-xs">?token=&lt;key&gt;</code>.
+					Keys authenticate AdGuard Home requests to filter URLs via <code
+						class="bg-muted rounded px-1 text-xs">?token=&lt;key&gt;</code
+					>.
 				</p>
 			</div>
 			<Button onclick={() => (keyModalOpen = true)}>
@@ -468,8 +482,12 @@
 		</div>
 
 		{#if keys.length === 0}
-			<div class="border-border text-muted-foreground rounded-lg border border-dashed py-12 text-center text-sm">
-				No API keys yet. Create a key and add <code class="bg-muted rounded px-1">?token=&lt;key&gt;</code> to filter URLs in AdGuard Home.
+			<div
+				class="border-border text-muted-foreground rounded-lg border border-dashed py-12 text-center text-sm"
+			>
+				No API keys yet. Create a key and add <code class="bg-muted rounded px-1"
+					>?token=&lt;key&gt;</code
+				> to filter URLs in AdGuard Home.
 			</div>
 		{:else}
 			<Table.Root>
@@ -485,8 +503,12 @@
 					{#each keys as k (k.id)}
 						<Table.Row>
 							<Table.Cell class="font-medium">{k.name}</Table.Cell>
-							<Table.Cell class="text-muted-foreground text-sm">{formatDate(k.createdAt)}</Table.Cell>
-							<Table.Cell class="text-muted-foreground text-sm">{formatDate(k.lastUsedAt)}</Table.Cell>
+							<Table.Cell class="text-muted-foreground text-sm"
+								>{formatDate(k.createdAt)}</Table.Cell
+							>
+							<Table.Cell class="text-muted-foreground text-sm"
+								>{formatDate(k.lastUsedAt)}</Table.Cell
+							>
 							<Table.Cell class="flex justify-end">
 								<Button
 									variant="ghost"
@@ -504,13 +526,16 @@
 			</Table.Root>
 		{/if}
 
-		<div class="bg-muted/50 border-border rounded-lg border-l-4 border border-l-primary/30 px-4 py-3.5 space-y-1">
+		<div
+			class="bg-muted/50 border-border border-l-primary/30 space-y-1 rounded-lg border border-l-4 px-4 py-3.5"
+		>
 			<p class="text-sm font-medium">Cloudflare Access setup</p>
 			<p class="text-muted-foreground text-sm">
 				Add a <strong>Bypass</strong> policy in your Cloudflare Access application for the path
 				<code class="bg-background rounded px-1 text-xs">/filter/*</code> so AdGuard Home can reach
-				filter URLs without browser-based auth. The <code class="bg-background rounded px-1 text-xs">?token=</code> check above
-				protects those routes instead.
+				filter URLs without browser-based auth. The
+				<code class="bg-background rounded px-1 text-xs">?token=</code> check above protects those routes
+				instead.
 			</p>
 		</div>
 	</div>

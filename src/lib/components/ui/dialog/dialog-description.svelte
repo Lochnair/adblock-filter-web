@@ -13,9 +13,6 @@
 	} = $props();
 </script>
 
-<BitsDialog.Description
-	class={cn('text-muted-foreground text-sm', className)}
-	{...restProps}
->
+<BitsDialog.Description class={cn('text-muted-foreground text-sm', className)} {...restProps}>
 	{@render children?.()}
 </BitsDialog.Description>
