@@ -21,6 +21,14 @@ export const sites = sqliteTable('sites', {
 	description: text('description').notNull().default('')
 });
 
+export const apiKeys = sqliteTable('api_keys', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	name: text('name').notNull(),
+	keyHash: text('key_hash').notNull().unique(),
+	createdAt: integer('created_at').notNull(),
+	lastUsedAt: integer('last_used_at')
+});
+
 export const siteLists = sqliteTable(
 	'site_lists',
 	{

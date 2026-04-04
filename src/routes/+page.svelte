@@ -3,11 +3,12 @@
 	import * as Table from '$lib/components/ui/table';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
-	import { Pencil, Trash2, X, Plus, Globe } from 'lucide-svelte';
+	import { Pencil, Trash2, X, Plus, Globe, Key } from 'lucide-svelte';
 	import RecordModal from '$lib/components/RecordModal.svelte';
 	import ListModal from '$lib/components/ListModal.svelte';
 	import SiteModal from '$lib/components/SiteModal.svelte';
 	import SiteEditor from '$lib/components/SiteEditor.svelte';
+	import KeyModal from '$lib/components/KeyModal.svelte';
 	import type { DNSRecord } from '$lib/server/adblock';
 	import type { InferSelectModel } from 'drizzle-orm';
 	import type { filterLists as filterListsTable } from '$lib/server/db/schema';
@@ -15,6 +16,7 @@
 	type FilterList = InferSelectModel<typeof filterListsTable>;
 
 	type SiteRow = { id: number; slug: string; description: string; lists: string[] };
+	type ApiKey = { id: number; name: string; createdAt: number; lastUsedAt: number | null };
 
 	let { data } = $props<{
 		data: {
@@ -22,6 +24,7 @@
 			records: DNSRecord[];
 			selectedList: string;
 			sites: SiteRow[];
+			keys: ApiKey[];
 		};
 	}>();
 
@@ -42,8 +45,12 @@
 	let siteEditorOpen = $state(false);
 	let editingSite: SiteRow | null = $state(null);
 
+	// ── API Keys state ────────────────────────────────────────────────────────
+	let keys = $state<ApiKey[]>(data.keys);
+	let keyModalOpen = $state(false);
+
 	// ── Top-level section ────────────────────────────────────────────────────
-	let section = $state<'lists' | 'sites'>('lists');
+	let section = $state<'lists' | 'sites' | 'keys'>('lists');
 
 	// ── List helpers ─────────────────────────────────────────────────────────
 	function openCreate() {
@@ -99,6 +106,27 @@
 		}
 	}
 
+	// ── Key helpers ───────────────────────────────────────────────────────────
+	async function refreshKeys() {
+		const res = await fetch('/api/keys');
+		keys = await res.json();
+	}
+
+	async function revokeKey(id: number) {
+		if (!confirm('Revoke this key? Any AdGuard Home instance using it will lose access.')) return;
+		await fetch('/api/keys', {
+			method: 'DELETE',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ id })
+		});
+		await refreshKeys();
+	}
+
+	function formatDate(ts: number | null) {
+		if (!ts) return '—';
+		return new Date(ts).toLocaleDateString(undefined, { dateStyle: 'medium' });
+	}
+
 	// ── Site helpers ──────────────────────────────────────────────────────────
 	async function refreshSites() {
 		const res = await fetch('/api/sites');
@@ -141,6 +169,17 @@
 			Sites
 			{#if sites.length > 0}
 				<span class="bg-muted text-muted-foreground ml-1.5 rounded-full px-1.5 py-0.5 text-xs">{sites.length}</span>
+			{/if}
+		</button>
+		<button
+			class="px-4 py-2 text-sm font-medium transition-colors {section === 'keys'
+				? 'border-b-2 border-primary text-foreground -mb-px'
+				: 'text-muted-foreground hover:text-foreground'}"
+			onclick={() => (section = 'keys')}
+		>
+			API Keys
+			{#if keys.length > 0}
+				<span class="bg-muted text-muted-foreground ml-1.5 rounded-full px-1.5 py-0.5 text-xs">{keys.length}</span>
 			{/if}
 		</button>
 	</div>
@@ -329,6 +368,71 @@
 	</div>
 {/if}
 
+<!-- ─────────────────────── KEYS SECTION ─────────────────────── -->
+{#if section === 'keys'}
+	<div class="mx-auto max-w-6xl p-4 space-y-4">
+		<div class="flex items-center justify-between">
+			<div>
+				<h2 class="text-base font-semibold">API Keys</h2>
+				<p class="text-muted-foreground text-sm">
+					Keys authenticate AdGuard Home requests to filter URLs via <code class="bg-muted rounded px-1 text-xs">?token=&lt;key&gt;</code>.
+				</p>
+			</div>
+			<Button onclick={() => (keyModalOpen = true)}>
+				<Key class="mr-2 h-4 w-4" />
+				New Key
+			</Button>
+		</div>
+
+		{#if keys.length === 0}
+			<div class="border-border text-muted-foreground rounded-lg border border-dashed py-12 text-center text-sm">
+				No API keys yet. Create a key and add <code class="bg-muted rounded px-1">?token=&lt;key&gt;</code> to filter URLs in AdGuard Home.
+			</div>
+		{:else}
+			<Table.Root>
+				<Table.Header>
+					<Table.Row>
+						<Table.Head>Name</Table.Head>
+						<Table.Head>Created</Table.Head>
+						<Table.Head>Last used</Table.Head>
+						<Table.Head></Table.Head>
+					</Table.Row>
+				</Table.Header>
+				<Table.Body>
+					{#each keys as k (k.id)}
+						<Table.Row>
+							<Table.Cell class="font-medium">{k.name}</Table.Cell>
+							<Table.Cell class="text-muted-foreground text-sm">{formatDate(k.createdAt)}</Table.Cell>
+							<Table.Cell class="text-muted-foreground text-sm">{formatDate(k.lastUsedAt)}</Table.Cell>
+							<Table.Cell class="flex justify-end">
+								<Button
+									variant="ghost"
+									size="icon"
+									class="text-destructive hover:text-destructive h-8 w-8"
+									aria-label="Revoke key"
+									onclick={() => revokeKey(k.id)}
+								>
+									<Trash2 class="h-4 w-4" />
+								</Button>
+							</Table.Cell>
+						</Table.Row>
+					{/each}
+				</Table.Body>
+			</Table.Root>
+		{/if}
+
+		<div class="border-border rounded-lg border p-4 space-y-1.5">
+			<p class="text-sm font-medium">Cloudflare Access setup</p>
+			<p class="text-muted-foreground text-sm">
+				Add a <strong>Bypass</strong> policy in your Cloudflare Access application for the path
+				<code class="bg-muted rounded px-1 text-xs">/filter/*</code> so AdGuard Home can reach
+				filter URLs without browser-based auth. The <code class="bg-muted rounded px-1 text-xs">?token=</code> check above
+				protects those routes instead.
+			</p>
+		</div>
+	</div>
+{/if}
+
 <!-- ─────────────────────── MODALS ─────────────────────── -->
 <RecordModal
 	bind:open={modalOpen}
@@ -348,3 +452,5 @@
 	availableLists={lists.map((l) => l.slug)}
 	afterSubmit={refreshSites}
 />
+
+<KeyModal bind:open={keyModalOpen} afterSubmit={refreshKeys} />
