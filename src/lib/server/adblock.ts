@@ -1,13 +1,26 @@
 import type { InferSelectModel } from 'drizzle-orm';
 import { dnsRecords } from './db/schema';
+import { DNS_RR_TYPES } from '$lib/record-types';
 
 export type DNSRecord = InferSelectModel<typeof dnsRecords>;
 
-const DNS_RR_TYPES = new Set(['A', 'AAAA', 'CNAME', 'HTTPS', 'SVCB', 'MX', 'PTR', 'SRV', 'TXT']);
+const DNS_RR_TYPES_SET = new Set<string>(DNS_RR_TYPES);
 
 export function toFilter(record: DNSRecord): string {
-	if (record.type === 'REFUSED') return `${record.name}$dnsrewrite=REFUSED`;
-	if (record.type === 'NXDOMAIN') return `${record.name}$dnsrewrite=NXDOMAIN;;`;
+	if (record.type === 'REFUSED') {
+		return record.value
+			? `||${record.name}^$dnstype=${record.value},dnsrewrite=REFUSED`
+			: `${record.name}$dnsrewrite=REFUSED`;
+	}
+	if (record.type === 'NXDOMAIN') {
+		return record.value
+			? `||${record.name}^$dnstype=${record.value},dnsrewrite=NXDOMAIN;;`
+			: `${record.name}$dnsrewrite=NXDOMAIN;;`;
+	}
+	// Empty value on an RR type = NODATA (NOERROR with empty answer) for that query type
+	if (!record.value) {
+		return `||${record.name}^$dnstype=${record.type},dnsrewrite=NOERROR;;`;
+	}
 	return `${record.name}$dnsrewrite=NOERROR;${record.type};${record.value}`;
 }
 
@@ -25,7 +38,16 @@ export function generateFilter(records: DNSRecord[]): string {
 		for (const r of recs) {
 			lines.push(toFilter(r));
 		}
-		const types = new Set<string>(recs.map((r) => r.type).filter((t) => DNS_RR_TYPES.has(t)));
+		// Build the set of query types explicitly handled by records in this group.
+		// Both real-value and NODATA (empty-value) RR type records count — they all
+		// generate explicit dnsrewrite rules that intercept those query types.
+		// Scoped NXDOMAIN/REFUSED values also cover their target type.
+		const types = new Set<string>(recs.map((r) => r.type).filter((t) => DNS_RR_TYPES_SET.has(t)));
+		for (const r of recs) {
+			if ((r.type === 'NXDOMAIN' || r.type === 'REFUSED') && r.value) {
+				types.add(r.value);
+			}
+		}
 		types.add('SOA');
 		// Only emit dnstype exclusion line when actual RR types are present (SOA alone doesn't count)
 		if (types.size > 1) {
