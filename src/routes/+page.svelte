@@ -12,6 +12,7 @@
 	import type { DNSRecord } from '$lib/server/adblock';
 	import type { InferSelectModel } from 'drizzle-orm';
 	import type { filterLists as filterListsTable } from '$lib/server/db/schema';
+	import { DNS_RR_TYPES } from '$lib/record-types';
 
 	type FilterList = InferSelectModel<typeof filterListsTable>;
 
@@ -37,6 +38,7 @@
 	let modalOpen = $state(false);
 	let listModalOpen = $state(false);
 	let editing: DNSRecord | null = $state(null);
+	let modalInitialName = $state('');
 	let recordError = $state('');
 
 	// ── Sites state ──────────────────────────────────────────────────────────
@@ -53,15 +55,17 @@
 	let section = $state<'lists' | 'sites' | 'keys'>('lists');
 
 	// ── List helpers ─────────────────────────────────────────────────────────
-	function openCreate() {
+	function openCreate(hostname = '') {
 		editing = null;
 		recordError = '';
+		modalInitialName = hostname;
 		modalOpen = true;
 	}
 
 	function openEdit(record: DNSRecord) {
 		editing = record;
 		recordError = '';
+		modalInitialName = '';
 		modalOpen = true;
 	}
 
@@ -104,6 +108,33 @@
 			selectedList = lists[0].slug;
 			loadRecords(selectedList);
 		}
+	}
+
+	// ── Grouping helpers ─────────────────────────────────────────────────────
+	const dnsRRSet = new Set<string>(DNS_RR_TYPES);
+
+	function groupByHostname(records: DNSRecord[]): [string, DNSRecord[]][] {
+		const map = new Map<string, DNSRecord[]>();
+		for (const r of records) {
+			const arr = map.get(r.name);
+			if (arr) arr.push(r);
+			else map.set(r.name, [r]);
+		}
+		return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+	}
+
+	function autoBlockedTypes(recs: DNSRecord[]): string[] {
+		// Only emit when there are real RR-type records (mirrors generateFilter logic)
+		const rrRecs = recs.filter((r) => dnsRRSet.has(r.type));
+		if (rrRecs.length === 0) return [];
+		const covered = new Set<string>([
+			...rrRecs.map((r) => r.type),
+			...recs
+				.filter((r) => (r.type === 'NXDOMAIN' || r.type === 'REFUSED') && r.value)
+				.map((r) => r.value),
+			'SOA'
+		]);
+		return DNS_RR_TYPES.filter((t) => !covered.has(t));
 	}
 
 	// ── Key helpers ───────────────────────────────────────────────────────────
@@ -220,57 +251,103 @@
 
 			{#each lists as l (l.id)}
 				<Tabs.Content value={l.slug}>
+					{@const records = recordsByList[l.slug] ?? []}
+					{@const groups = groupByHostname(records)}
 					<div class="space-y-4">
 						<div class="flex items-center justify-between">
 							<p class="text-muted-foreground text-sm">
-								{(recordsByList[l.slug] ?? []).length}
-								{(recordsByList[l.slug] ?? []).length === 1 ? 'record' : 'records'}
+								{records.length}
+								{records.length === 1 ? 'record' : 'records'}
 							</p>
-							<Button onclick={openCreate}>Add Record</Button>
+							<Button onclick={() => openCreate()}>Add Record</Button>
 						</div>
 
 						<Table.Root>
 							<Table.Header>
 								<Table.Row>
-									<Table.Head class="w-[38%]">Hostname</Table.Head>
-									<Table.Head class="w-24">Type</Table.Head>
+									<Table.Head class="w-28">Type</Table.Head>
 									<Table.Head>Value</Table.Head>
 									<Table.Head class="w-20"></Table.Head>
 								</Table.Row>
 							</Table.Header>
 							<Table.Body>
-								{#each recordsByList[l.slug] ?? [] as r (r.id)}
-									<Table.Row>
-										<Table.Cell class="font-mono text-sm">{r.name}</Table.Cell>
-										<Table.Cell>
-											<span class="bg-muted rounded px-1.5 py-0.5 font-mono text-xs"
-												>{r.type}</span
-											>
+								{#each groups as [hostname, recs] (hostname)}
+									{@const blocked = autoBlockedTypes(recs)}
+									<!-- Hostname group header -->
+									<Table.Row class="bg-muted/40 hover:bg-muted/40 border-t">
+										<Table.Cell colspan={2} class="py-2">
+											<span class="font-mono text-sm font-semibold">{hostname}</span>
 										</Table.Cell>
-										<Table.Cell class="max-w-xs font-mono text-sm">
-											<span class="block truncate">{r.value || '—'}</span>
-										</Table.Cell>
-										<Table.Cell class="flex justify-end gap-1">
-											<Button
-												variant="ghost"
-												size="icon"
-												class="h-8 w-8"
-												aria-label="Edit"
-												onclick={() => openEdit(r)}
-											>
-												<Pencil class="h-4 w-4" />
-											</Button>
-											<Button
-												variant="ghost"
-												size="icon"
-												class="text-destructive hover:text-destructive h-8 w-8"
-												aria-label="Delete"
-												onclick={() => removeRecord(r.id)}
-											>
-												<Trash2 class="h-4 w-4" />
-											</Button>
+										<Table.Cell class="py-2">
+											<div class="flex justify-end">
+												<Button
+													variant="ghost"
+													size="icon"
+													class="h-7 w-7"
+													aria-label="Add record for {hostname}"
+													onclick={() => openCreate(hostname)}
+												>
+													<Plus class="h-3.5 w-3.5" />
+												</Button>
+											</div>
 										</Table.Cell>
 									</Table.Row>
+									<!-- Records -->
+									{#each recs as r (r.id)}
+										<Table.Row>
+											<Table.Cell>
+												<span
+													class="rounded px-1.5 py-0.5 font-mono text-xs {r.type === 'NXDOMAIN' ||
+													r.type === 'REFUSED'
+														? 'bg-destructive/10 text-destructive'
+														: 'bg-muted'}"
+												>{r.type}</span>
+											</Table.Cell>
+											<Table.Cell class="max-w-xs">
+												{#if r.type === 'NXDOMAIN' || r.type === 'REFUSED'}
+													{#if r.value}
+														<span class="text-muted-foreground font-mono text-xs">{r.value} only</span>
+													{:else}
+														<span class="text-destructive text-xs">all queries</span>
+													{/if}
+												{:else if !r.value}
+													<span class="text-muted-foreground text-xs italic">no record</span>
+												{:else}
+													<span class="block truncate font-mono text-sm">{r.value}</span>
+												{/if}
+											</Table.Cell>
+											<Table.Cell class="flex justify-end gap-1">
+												<Button
+													variant="ghost"
+													size="icon"
+													class="h-8 w-8"
+													aria-label="Edit"
+													onclick={() => openEdit(r)}
+												>
+													<Pencil class="h-4 w-4" />
+												</Button>
+												<Button
+													variant="ghost"
+													size="icon"
+													class="text-destructive hover:text-destructive h-8 w-8"
+													aria-label="Delete"
+													onclick={() => removeRecord(r.id)}
+												>
+													<Trash2 class="h-4 w-4" />
+												</Button>
+											</Table.Cell>
+										</Table.Row>
+									{/each}
+									<!-- Auto-blocked types footer -->
+									{#if blocked.length > 0}
+										<Table.Row class="hover:bg-transparent">
+											<Table.Cell colspan={3} class="border-b py-1.5 pb-2.5">
+												<span class="text-muted-foreground text-xs">
+													also blocks: {blocked.join(' · ')}
+												</span>
+											</Table.Cell>
+										</Table.Row>
+									{/if}
 								{/each}
 							</Table.Body>
 						</Table.Root>
@@ -444,6 +521,7 @@
 	bind:open={modalOpen}
 	record={editing}
 	list={selectedList}
+	initialName={modalInitialName}
 	bind:error={recordError}
 	afterSubmit={refreshLists}
 />
