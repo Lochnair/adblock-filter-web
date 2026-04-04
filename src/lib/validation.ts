@@ -1,6 +1,6 @@
 import isValidDomain from 'is-valid-domain';
 import ipaddr from 'ipaddr.js';
-import { RECORD_TYPES, type RecordType } from '$lib/record-types';
+import { RECORD_TYPES, DNS_RR_TYPES, type RecordType, type DNSRRType } from '$lib/record-types';
 
 export interface RecordInput {
 	name: string;
@@ -25,19 +25,23 @@ export function validateRecord(rec: RecordInput): string | null {
 	}
 	switch (rec.type) {
 		case 'A':
+			if (rec.value === '') break; // NODATA
 			if (!ipaddr.isValid(rec.value) || ipaddr.parse(rec.value).kind() !== 'ipv4') {
 				return 'invalid IPv4 address';
 			}
 			break;
 		case 'AAAA':
+			if (rec.value === '') break; // NODATA
 			if (!ipaddr.isValid(rec.value) || ipaddr.parse(rec.value).kind() !== 'ipv6') {
 				return 'invalid IPv6 address';
 			}
 			break;
 		case 'CNAME':
+			if (rec.value === '') break; // NODATA
 			if (!isDomain(rec.value)) return 'invalid domain';
 			break;
 		case 'MX': {
+			if (rec.value === '') break; // NODATA
 			const parts = rec.value.trim().split(/\s+/);
 			if (parts.length !== 2) return 'invalid MX value';
 			const [priority, exchange] = parts;
@@ -46,9 +50,11 @@ export function validateRecord(rec: RecordInput): string | null {
 			break;
 		}
 		case 'PTR':
+			if (rec.value === '') break; // NODATA
 			if (!isDomain(rec.value)) return 'invalid domain';
 			break;
 		case 'SRV': {
+			if (rec.value === '') break; // NODATA
 			const parts = rec.value.trim().split(/\s+/);
 			if (parts.length !== 4) return 'invalid SRV value';
 			const [priority, weight, port, target] = parts;
@@ -57,10 +63,11 @@ export function validateRecord(rec: RecordInput): string | null {
 			break;
 		}
 		case 'TXT':
-			if (rec.value === '') return 'invalid TXT value';
+			if (rec.value === '') break; // NODATA
 			break;
 		case 'HTTPS':
 		case 'SVCB': {
+			if (rec.value === '') break; // NODATA
 			const parts = rec.value.trim().split(/\s+/);
 			if (parts.length < 2) return 'invalid value';
 			const priority = parts.shift()!;
@@ -83,7 +90,10 @@ export function validateRecord(rec: RecordInput): string | null {
 		}
 		case 'REFUSED':
 		case 'NXDOMAIN':
-			if (rec.value !== '') return 'value must be empty for this record type';
+			// value must be empty (global) or a valid DNS RR type name (scoped to that query type)
+			if (rec.value !== '' && !DNS_RR_TYPES.includes(rec.value as DNSRRType)) {
+				return 'scope must be empty or a valid DNS record type';
+			}
 			break;
 	}
 	return null;
