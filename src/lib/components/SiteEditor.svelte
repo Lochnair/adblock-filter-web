@@ -13,7 +13,9 @@
 		afterSubmit = $bindable(async () => {})
 	} = $props();
 
-	// Local copy of the assignment — modified without touching the prop until Save
+	// Local copy of the assignment — modified without touching the prop until Save.
+	// Must stay as $state+$effect (not $derived) because the user can mutate it via toggle().
+	// eslint-disable-next-line svelte/prefer-writable-derived
 	let selected = $state<string[]>([]);
 
 	$effect(() => {
