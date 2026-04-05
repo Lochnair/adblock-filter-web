@@ -2,6 +2,7 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
+	import { resolve } from '$app/paths';
 
 	let {
 		open = $bindable(false),
@@ -81,7 +82,7 @@
 			<p class="text-muted-foreground text-xs">
 				Filter URL:
 				<a
-					href="/filter/site/{site?.slug}.txt"
+					href={resolve(`/filter/site/${site?.slug}.txt`)}
 					target="_blank"
 					class="text-primary font-mono underline underline-offset-2"
 					>/filter/site/{site?.slug}.txt</a

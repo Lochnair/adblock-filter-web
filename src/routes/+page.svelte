@@ -13,6 +13,7 @@
 	import type { InferSelectModel } from 'drizzle-orm';
 	import type { filterLists as filterListsTable } from '$lib/server/db/schema';
 	import { DNS_RR_TYPES } from '$lib/record-types';
+	import { resolve } from '$app/paths';
 
 	type FilterList = InferSelectModel<typeof filterListsTable>;
 
@@ -360,7 +361,7 @@
 
 						<p class="text-muted-foreground text-sm">
 							<a
-								href={`/filter/${l.slug}.txt`}
+								href={resolve(`/filter/${l.slug}.txt`)}
 								class="text-primary underline underline-offset-4 hover:no-underline"
 							>
 								View generated filter for <span class="font-mono">{l.slug}</span>
@@ -426,7 +427,7 @@
 							</Table.Cell>
 							<Table.Cell class="max-w-[180px]">
 								<a
-									href="/filter/site/{site.slug}.txt"
+									href={resolve(`/filter/site/${site.slug}.txt`)}
 									target="_blank"
 									class="text-primary flex items-center gap-1 font-mono text-xs underline underline-offset-2 hover:no-underline"
 								>
