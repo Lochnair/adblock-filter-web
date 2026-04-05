@@ -115,13 +115,11 @@
 	const dnsRRSet = new Set<string>(DNS_RR_TYPES);
 
 	function groupByHostname(records: DNSRecord[]): [string, DNSRecord[]][] {
-		const map = new Map<string, DNSRecord[]>();
+		const groups: Record<string, DNSRecord[]> = {};
 		for (const r of records) {
-			const arr = map.get(r.name);
-			if (arr) arr.push(r);
-			else map.set(r.name, [r]);
+			(groups[r.name] ??= []).push(r);
 		}
-		return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+		return Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]));
 	}
 
 	function autoBlockedTypes(recs: DNSRecord[]): string[] {
