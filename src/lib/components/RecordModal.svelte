@@ -63,9 +63,9 @@
 		httpsFields = {
 			priority: parts[0] ?? '',
 			target: parts[1] ?? '',
-			alpn: httpsRemaining.find((p) => p.startsWith('alpn='))?.slice(5) ?? '',
-			port: httpsRemaining.find((p) => p.startsWith('port='))?.slice(5) ?? '',
-			ipv4hint: httpsRemaining.find((p) => p.startsWith('ipv4hint='))?.slice(9) ?? ''
+			alpn: httpsRemaining.find((p: string) => p.startsWith('alpn='))?.slice(5) ?? '',
+			port: httpsRemaining.find((p: string) => p.startsWith('port='))?.slice(5) ?? '',
+			ipv4hint: httpsRemaining.find((p: string) => p.startsWith('ipv4hint='))?.slice(9) ?? ''
 		};
 	});
 
