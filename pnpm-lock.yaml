@@ -19,7 +19,7 @@ importers:
         version: 2.1.1
       dotenv:
         specifier: ^17.4.0
-        version: 17.4.0
+        version: 17.4.1
       drizzle-orm:
         specifier: ^0.45.2
         version: 0.45.2(@cloudflare/workers-types@4.20260409.1)(@libsql/client@0.17.2)(gel@2.1.1)
@@ -1543,8 +1543,8 @@ packages:
   devalue@5.7.1:
     resolution: {integrity: sha512-MUbZ586EgQqdRnC4yDrlod3BEdyvE4TapGYHMW2CiaW+KkkFmWEFqBUaLltEZCGi0iFXCEjRF0OjF0DV2QHjOA==}
 
-  dotenv@17.4.0:
-    resolution: {integrity: sha512-kCKF62fwtzwYm0IGBNjRUjtJgMfGapII+FslMHIjMR5KTnwEmBmWLDRSnc3XSNP8bNy34tekgQyDT0hr7pERRQ==}
+  dotenv@17.4.1:
+    resolution: {integrity: sha512-k8DaKGP6r1G30Lx8V4+pCsLzKr8vLmV2paqEj1Y55GdAgJuIqpRp5FfajGF8KtwMxCz9qJc6wUIJnm053d/WCw==}
     engines: {node: '>=12'}
 
   drizzle-kit@0.31.10:
@@ -3503,7 +3503,7 @@ snapshots:
 
   devalue@5.7.1: {}
 
-  dotenv@17.4.0: {}
+  dotenv@17.4.1: {}
 
   drizzle-kit@0.31.10:
     dependencies:
