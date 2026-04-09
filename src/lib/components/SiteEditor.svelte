@@ -53,7 +53,15 @@
 	}
 </script>
 
-<Dialog.Root bind:open>
+<Dialog.Root
+	bind:open
+	onOpenChange={(v) => {
+		if (!v) {
+			selected = site?.lists ? [...site.lists] : [];
+			description = site?.description ?? '';
+		}
+	}}
+>
 	<Dialog.Content class="sm:max-w-md">
 		<Dialog.Header>
 			<Dialog.Title>Edit Site — {site?.slug}</Dialog.Title>

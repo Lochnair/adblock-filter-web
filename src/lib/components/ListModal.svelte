@@ -33,7 +33,10 @@
 <Dialog.Root
 	bind:open
 	onOpenChange={(v) => {
-		if (!v) error = '';
+		if (!v) {
+			slug = '';
+			error = '';
+		}
 	}}
 >
 	<Dialog.Content class="sm:max-w-md">
