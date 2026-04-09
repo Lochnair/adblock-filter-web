@@ -8,7 +8,9 @@ export interface RecordInput {
 	value: string;
 }
 
-const isDomain = (d: string) => isValidDomain(d, { subdomain: true, allowUnicode: true, topLevel: true });
+const isSingleLabel = (d: string) => /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/i.test(d);
+const isDomain = (d: string) =>
+	isSingleLabel(d) || isValidDomain(d, { subdomain: true, allowUnicode: true });
 
 export function validateRecord(rec: RecordInput): string | null {
 	if (!rec.name || !rec.type || rec.value === undefined) {
