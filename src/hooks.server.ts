@@ -64,11 +64,17 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	const teamDomain = event.platform?.env?.CF_ACCESS_TEAM_DOMAIN;
 	const cfAud = event.platform?.env?.CF_ACCESS_AUD;
-	const jwtHeader = event.request.headers.get('CF-Access-Jwt-Assertion');
+
+	// CF Access injects the header on protected paths; on bypassed paths (e.g. /filter/*)
+	// authenticated users still carry the CF_Authorization cookie which holds the same JWT.
+	const cookieHeader = event.request.headers.get('cookie') ?? '';
+	const cfCookie = cookieHeader.match(/(?:^|;\s*)CF_Authorization=([^;]+)/)?.[1];
+	const jwt =
+		event.request.headers.get('CF-Access-Jwt-Assertion') ?? cfCookie ?? null;
 
 	event.locals.cfAccessAuthenticated =
-		teamDomain && cfAud && jwtHeader
-			? await validateCFAccessJWT(jwtHeader, teamDomain, cfAud)
+		teamDomain && cfAud && jwt
+			? await validateCFAccessJWT(jwt, teamDomain, cfAud)
 			: false;
 
 	if (event.url.pathname.startsWith('/filter/')) {
