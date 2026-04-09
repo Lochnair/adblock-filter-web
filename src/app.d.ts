@@ -4,10 +4,15 @@ import type { D1Database, CfProperties, ExecutionContext } from '@cloudflare/wor
 
 declare global {
 	namespace App {
+		interface Locals {
+			cfAccessAuthenticated: boolean;
+		}
 		interface Platform {
 			env?: {
 				DB: D1Database;
 				RUN_MIGRATIONS?: string;
+				CF_ACCESS_TEAM_DOMAIN?: string;
+				CF_ACCESS_AUD?: string;
 			};
 			cf: CfProperties;
 			ctx: ExecutionContext;

@@ -45,7 +45,10 @@
 	 * Environment Variables
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
 	 */
-	// "vars": { "MY_VARIABLE": "production_value" },
+	"vars": {
+		"CF_ACCESS_TEAM_DOMAIN": "mrknet.cloudflareaccess.com",
+		"CF_ACCESS_AUD": "33fa34f88123bff2d695f6c059f90bce5ca236b784fad0b327b8f881197bed6b"
+	},
 	/**
 	 * Note: Use secrets to store sensitive data.
 	 * https://developers.cloudflare.com/workers/configuration/secrets/
