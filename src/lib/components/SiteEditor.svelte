@@ -2,6 +2,8 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
+	import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
 	import { resolve } from '$app/paths';
 
 	let {
@@ -13,13 +15,15 @@
 		afterSubmit = $bindable(async () => {})
 	} = $props();
 
-	// Local copy of the assignment — modified without touching the prop until Save.
-	// Must stay as $state+$effect (not $derived) because the user can mutate it via toggle().
+	// Local copies — modified without touching the prop until Save.
 	// eslint-disable-next-line svelte/prefer-writable-derived
 	let selected = $state<string[]>([]);
+	// eslint-disable-next-line svelte/prefer-writable-derived
+	let description = $state('');
 
 	$effect(() => {
 		selected = site?.lists ? [...site.lists] : [];
+		description = site?.description ?? '';
 	});
 
 	function toggle(slug: string) {
@@ -32,11 +36,18 @@
 
 	async function save() {
 		if (!site) return;
-		await fetch(`/api/sites/${site.slug}/lists`, {
-			method: 'PUT',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ lists: selected })
-		});
+		await Promise.all([
+			fetch(`/api/sites/${site.slug}/lists`, {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ lists: selected })
+			}),
+			fetch(`/api/sites/${site.slug}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ description })
+			})
+		]);
 		await afterSubmit();
 		open = false;
 	}
@@ -46,12 +57,17 @@
 	<Dialog.Content class="sm:max-w-md">
 		<Dialog.Header>
 			<Dialog.Title>Edit Site — {site?.slug}</Dialog.Title>
-			{#if site?.description}
-				<Dialog.Description>{site.description}</Dialog.Description>
-			{/if}
 		</Dialog.Header>
 
-		<div class="space-y-3">
+		<div class="space-y-4">
+			<div class="space-y-1.5">
+				<Label for="site-description">Description</Label>
+				<Input
+					id="site-description"
+					bind:value={description}
+					placeholder="Optional description"
+				/>
+			</div>
 			<p class="text-sm font-medium">Assign filter lists</p>
 			{#if availableLists.length === 0}
 				<p class="text-muted-foreground text-sm">No lists exist yet. Create a list first.</p>
