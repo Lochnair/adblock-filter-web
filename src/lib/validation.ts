@@ -8,7 +8,7 @@ export interface RecordInput {
 	value: string;
 }
 
-const isDomain = (d: string) => isValidDomain(d, { subdomain: true, allowUnicode: true });
+const isDomain = (d: string) => isValidDomain(d, { subdomain: true, allowUnicode: true, topLevel: true });
 
 export function validateRecord(rec: RecordInput): string | null {
 	if (!rec.name || !rec.type || rec.value === undefined) {
