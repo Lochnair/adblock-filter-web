@@ -16,8 +16,11 @@
 
 <BitsSelect.Root
 	type="single"
-	bind:value
-	onValueChange={(v) => onValueChange?.(v ?? '')}
+	{value}
+	onValueChange={(v) => {
+		if (v !== undefined) value = v;
+		onValueChange?.(v ?? '');
+	}}
 	{disabled}
 >
 	{@render children?.()}
