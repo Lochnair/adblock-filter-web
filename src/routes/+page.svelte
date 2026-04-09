@@ -3,9 +3,10 @@
 	import * as Table from '$lib/components/ui/table';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
-	import { Pencil, Trash2, X, Plus, Globe, Key } from 'lucide-svelte';
+	import { Pencil, Trash2, X, Plus, Globe, Key, Upload } from 'lucide-svelte';
 	import RecordModal from '$lib/components/RecordModal.svelte';
 	import ListModal from '$lib/components/ListModal.svelte';
+	import ImportModal from '$lib/components/ImportModal.svelte';
 	import SiteModal from '$lib/components/SiteModal.svelte';
 	import SiteEditor from '$lib/components/SiteEditor.svelte';
 	import KeyModal from '$lib/components/KeyModal.svelte';
@@ -38,6 +39,7 @@
 	let recordsByList = $state<Record<string, DNSRecord[]>>(initialRecords);
 	let modalOpen = $state(false);
 	let listModalOpen = $state(false);
+	let importModalOpen = $state(false);
 	let editing: DNSRecord | null = $state(null);
 	let modalInitialName = $state('');
 	let recordError = $state('');
@@ -262,7 +264,12 @@
 								{records.length}
 								{records.length === 1 ? 'record' : 'records'}
 							</p>
-							<Button onclick={() => openCreate()}>Add Record</Button>
+							<div class="flex gap-2">
+								<Button variant="outline" onclick={() => (importModalOpen = true)}>
+									<Upload class="mr-1.5 h-4 w-4" />Import
+								</Button>
+								<Button onclick={() => openCreate()}>Add Record</Button>
+							</div>
 						</div>
 
 						<Table.Root>
@@ -551,6 +558,8 @@
 />
 
 <ListModal bind:open={listModalOpen} afterSubmit={refreshLists} />
+
+<ImportModal bind:open={importModalOpen} listSlug={selectedList} onimport={refreshLists} />
 
 <SiteModal bind:open={siteModalOpen} afterSubmit={refreshSites} />
 
