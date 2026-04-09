@@ -2,12 +2,16 @@ import { json } from '@sveltejs/kit';
 import { getDB } from '$lib/server/db';
 import { sites, siteLists, filterLists } from '$lib/server/db/schema';
 import type { InferInsertModel } from 'drizzle-orm';
-import { eq } from 'drizzle-orm';
+import { eq, asc, sql } from 'drizzle-orm';
 
 /** GET /api/sites — returns all sites with their assigned list slugs */
 export async function GET({ platform }) {
 	const db = getDB(platform);
-	const allSites = await db.select().from(sites).all();
+	const allSites = await db
+		.select()
+		.from(sites)
+		.orderBy(asc(sites.position), asc(sites.slug))
+		.all();
 
 	const result = await Promise.all(
 		allSites.map(async (site) => {
@@ -38,7 +42,10 @@ export async function POST({ request, platform }) {
 	if (existing) {
 		return new Response('duplicate slug', { status: 409 });
 	}
-	await db.insert(sites).values({ slug: data.slug, description: data.description ?? '' });
+	const [{ count }] = await db.select({ count: sql<number>`count(*)` }).from(sites).all();
+	await db
+		.insert(sites)
+		.values({ slug: data.slug, description: data.description ?? '', position: count + 1 });
 	return new Response(null, { status: 201 });
 }
 
@@ -55,5 +62,24 @@ export async function DELETE({ request, platform }) {
 	}
 	await db.delete(siteLists).where(eq(siteLists.siteId, site.id)).run();
 	await db.delete(sites).where(eq(sites.id, site.id)).run();
+	return new Response(null, { status: 204 });
+}
+
+/** PATCH /api/sites — bulk update sort positions */
+export async function PATCH({ request, platform }) {
+	const data = (await request.json()) as { slugs?: string[] };
+	if (!Array.isArray(data.slugs) || data.slugs.length === 0) {
+		return new Response('slugs required', { status: 400 });
+	}
+	const db = getDB(platform);
+	await Promise.all(
+		data.slugs.map((slug, i) =>
+			db
+				.update(sites)
+				.set({ position: i + 1 })
+				.where(eq(sites.slug, slug))
+				.run()
+		)
+	);
 	return new Response(null, { status: 204 });
 }

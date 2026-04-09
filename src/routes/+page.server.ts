@@ -1,15 +1,15 @@
 import type { PageServerLoad } from './$types';
 import { getDB } from '$lib/server/db';
 import { filterLists, dnsRecords, sites, siteLists, apiKeys } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, asc } from 'drizzle-orm';
 
 export const load: PageServerLoad = async ({ platform, url }) => {
 	const db = getDB(platform);
 	const slug = url.searchParams.get('list') ?? 'default';
 
 	const [allLists, allSites, keyRows] = await Promise.all([
-		db.select().from(filterLists).all(),
-		db.select().from(sites).all(),
+		db.select().from(filterLists).orderBy(asc(filterLists.position), asc(filterLists.slug)).all(),
+		db.select().from(sites).orderBy(asc(sites.position), asc(sites.slug)).all(),
 		db
 			.select({
 				id: apiKeys.id,

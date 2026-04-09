@@ -2,11 +2,15 @@ import { json } from '@sveltejs/kit';
 import { getDB } from '$lib/server/db';
 import { filterLists, dnsRecords } from '$lib/server/db/schema';
 import type { InferInsertModel } from 'drizzle-orm';
-import { eq } from 'drizzle-orm';
+import { eq, asc, sql } from 'drizzle-orm';
 
 export async function GET({ platform }) {
 	const db = getDB(platform);
-	const lists = await db.select().from(filterLists).all();
+	const lists = await db
+		.select()
+		.from(filterLists)
+		.orderBy(asc(filterLists.position), asc(filterLists.slug))
+		.all();
 	return json(lists);
 }
 
@@ -39,6 +43,25 @@ export async function POST({ request, platform }) {
 	if (existing) {
 		return new Response('duplicate slug', { status: 409 });
 	}
-	await db.insert(filterLists).values({ slug: data.slug });
+	const [{ count }] = await db.select({ count: sql<number>`count(*)` }).from(filterLists).all();
+	await db.insert(filterLists).values({ slug: data.slug, position: count + 1 });
 	return new Response(null, { status: 201 });
+}
+
+export async function PATCH({ request, platform }) {
+	const data = (await request.json()) as { slugs?: string[] };
+	if (!Array.isArray(data.slugs) || data.slugs.length === 0) {
+		return new Response('slugs required', { status: 400 });
+	}
+	const db = getDB(platform);
+	await Promise.all(
+		data.slugs.map((slug, i) =>
+			db
+				.update(filterLists)
+				.set({ position: i + 1 })
+				.where(eq(filterLists.slug, slug))
+				.run()
+		)
+	);
+	return new Response(null, { status: 204 });
 }
