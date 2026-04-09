@@ -2,7 +2,8 @@ import { sqliteTable, integer, text, primaryKey } from 'drizzle-orm/sqlite-core'
 
 export const filterLists = sqliteTable('filter_lists', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
-	slug: text('slug').notNull().unique()
+	slug: text('slug').notNull().unique(),
+	position: integer('position').notNull().default(0)
 });
 
 export const dnsRecords = sqliteTable('dns_records', {
@@ -18,7 +19,8 @@ export const dnsRecords = sqliteTable('dns_records', {
 export const sites = sqliteTable('sites', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
 	slug: text('slug').notNull().unique(),
-	description: text('description').notNull().default('')
+	description: text('description').notNull().default(''),
+	position: integer('position').notNull().default(0)
 });
 
 export const apiKeys = sqliteTable('api_keys', {
