@@ -5,8 +5,6 @@ import { eq, asc } from 'drizzle-orm';
 
 export const load: PageServerLoad = async ({ platform, url }) => {
 	const db = getDB(platform);
-	const slug = url.searchParams.get('list') ?? 'default';
-
 	const [allLists, allSites, keyRows] = await Promise.all([
 		db.select().from(filterLists).orderBy(asc(filterLists.position), asc(filterLists.slug)).all(),
 		db.select().from(sites).orderBy(asc(sites.position), asc(sites.slug)).all(),
@@ -20,6 +18,9 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 			.from(apiKeys)
 			.all()
 	]);
+
+	const requestedSlug = url.searchParams.get('list');
+	const slug = requestedSlug ?? allLists[0]?.slug ?? 'default';
 
 	const [list] = await db.select().from(filterLists).where(eq(filterLists.slug, slug)).all();
 	const records = list
