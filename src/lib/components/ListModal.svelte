@@ -12,6 +12,16 @@
 	let slugError: string | null = $derived(slug && slugRegex.test(slug) ? null : 'invalid slug');
 	let displayError: string | null = $derived(slugError || error || null);
 
+	function reset() {
+		slug = '';
+		error = '';
+	}
+
+	function close() {
+		open = false;
+		reset();
+	}
+
 	async function submit(event: SubmitEvent) {
 		event.preventDefault();
 		if (slugError) return;
@@ -24,19 +34,15 @@
 			error = await res.text();
 			return;
 		}
-		slug = '';
 		await afterSubmit();
-		open = false;
+		close();
 	}
 </script>
 
 <Dialog.Root
 	bind:open
 	onOpenChange={(v) => {
-		if (!v) {
-			slug = '';
-			error = '';
-		}
+		if (!v) reset();
 	}}
 >
 	<Dialog.Content class="sm:max-w-md">
@@ -52,7 +58,7 @@
 				<p class="text-destructive text-sm">{displayError}</p>
 			{/if}
 			<Dialog.Footer>
-				<Button variant="outline" type="button" onclick={() => (open = false)}>Cancel</Button>
+				<Button variant="outline" type="button" onclick={close}>Cancel</Button>
 				<Button type="submit" disabled={slugError !== null}>Create List</Button>
 			</Dialog.Footer>
 		</form>

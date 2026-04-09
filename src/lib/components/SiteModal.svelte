@@ -15,6 +15,17 @@
 	);
 	const displayError: string | null = $derived(slugError || error || null);
 
+	function reset() {
+		slug = '';
+		description = '';
+		error = '';
+	}
+
+	function close() {
+		open = false;
+		reset();
+	}
+
 	async function submit(event: SubmitEvent) {
 		event.preventDefault();
 		if (slugError) return;
@@ -27,21 +38,15 @@
 			error = await res.text();
 			return;
 		}
-		slug = '';
-		description = '';
 		await afterSubmit();
-		open = false;
+		close();
 	}
 </script>
 
 <Dialog.Root
 	bind:open
 	onOpenChange={(v) => {
-		if (!v) {
-			slug = '';
-			description = '';
-			error = '';
-		}
+		if (!v) reset();
 	}}
 >
 	<Dialog.Content class="sm:max-w-md">
@@ -69,7 +74,7 @@
 				<p class="text-destructive text-sm">{displayError}</p>
 			{/if}
 			<Dialog.Footer>
-				<Button variant="outline" type="button" onclick={() => (open = false)}>Cancel</Button>
+				<Button variant="outline" type="button" onclick={close}>Cancel</Button>
 				<Button type="submit" disabled={slugError !== null}>Create Site</Button>
 			</Dialog.Footer>
 		</form>

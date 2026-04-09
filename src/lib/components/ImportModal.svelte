@@ -26,6 +26,11 @@
 		loading = false;
 	}
 
+	function close() {
+		open = false;
+		reset();
+	}
+
 	async function submit(event: SubmitEvent) {
 		event.preventDefault();
 		if (!rules.trim()) return;
@@ -86,7 +91,7 @@
 			</div>
 			<Dialog.Footer>
 				<Button onclick={() => { result = null; rules = ''; }}>Import More</Button>
-				<Button variant="outline" onclick={() => (open = false)}>Close</Button>
+				<Button variant="outline" onclick={close}>Close</Button>
 			</Dialog.Footer>
 		{:else}
 			<form class="space-y-3" onsubmit={submit}>
@@ -100,7 +105,7 @@
 					<p class="text-destructive text-sm">{error}</p>
 				{/if}
 				<Dialog.Footer>
-					<Button variant="outline" type="button" onclick={() => (open = false)}>Cancel</Button>
+					<Button variant="outline" type="button" onclick={close}>Cancel</Button>
 					<Button type="submit" disabled={!rules.trim() || loading}>
 						{loading ? 'Importing…' : 'Import'}
 					</Button>
