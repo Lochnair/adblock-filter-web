@@ -31,6 +31,15 @@ export function parseFilterRules(text: string): ParseResult {
 			parsed = { name: m[1].trim(), type: m[2].trim(), value: m[3].trim() };
 		}
 
+		// ── Format 1b: ||hostname^$dnstype=TYPE,dnsrewrite=NOERROR;TYPE;VALUE ──
+		// e.g. ||example.com^$dnstype=A,dnsrewrite=NOERROR;A;1.2.3.4
+		if (!parsed) {
+			m = line.match(/^\|\|([^|^]+)\^\$dnstype=[^,]+,dnsrewrite=NOERROR;([^;]+);(.+)$/);
+			if (m) {
+				parsed = { name: m[1].trim(), type: m[2].trim(), value: m[3].trim() };
+			}
+		}
+
 		// ── Format 2: ||hostname^$dnstype=TYPE,dnsrewrite=NOERROR;; (NODATA) ──
 		if (!parsed) {
 			m = line.match(/^\|\|([^|^]+)\^\$dnstype=([^,]+),dnsrewrite=NOERROR;;$/);
