@@ -414,10 +414,8 @@
 										<Table.Row>
 											<Table.Cell>
 												<span
-													class="rounded px-1.5 py-0.5 font-mono text-xs {r.type === 'NXDOMAIN' ||
-													r.type === 'REFUSED'
-														? 'bg-destructive/10 text-destructive'
-														: 'bg-muted'}">{r.type}</span
+													class="rounded px-1.5 py-0.5 font-mono text-xs {typeBadgeClass(r.type)}"
+												>{r.type}</span
 												>
 											</Table.Cell>
 											<Table.Cell class="max-w-xs">
