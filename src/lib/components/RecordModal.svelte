@@ -38,12 +38,15 @@
 		type = record?.type ?? 'A';
 		value = record?.value ?? '';
 
-		// Restore NODATA state: RR type record with an empty stored value
-		const isRR = DNS_RR_TYPES.includes(type as (typeof DNS_RR_TYPES)[number]);
+		// Use record's type here — NOT the reactive `type` variable.
+		// Reading `type` inside this effect would make it re-run whenever the
+		// user changes the selector, immediately resetting type back to record's value.
+		const recordType = record?.type ?? 'A';
+		const isRR = DNS_RR_TYPES.includes(recordType as (typeof DNS_RR_TYPES)[number]);
 		nodata = isRR && record !== null && (record?.value ?? '') === '';
 
 		// Restore scope for NXDOMAIN/REFUSED
-		scope = type === 'NXDOMAIN' || type === 'REFUSED' ? (record?.value ?? '') : '';
+		scope = recordType === 'NXDOMAIN' || recordType === 'REFUSED' ? (record?.value ?? '') : '';
 
 		// Parse existing value into structured fields for editing
 		const v = record?.value ?? '';
