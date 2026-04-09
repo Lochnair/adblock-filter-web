@@ -34,6 +34,7 @@
 	let scope = $state('');
 
 	$effect(() => {
+		if (!open) return;
 		name = record?.name ?? initialName;
 		type = record?.type ?? 'A';
 		value = record?.value ?? '';
